@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools >= 45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "textual-calytess"
+dynamic = ["version"]
+description = "ool to calibrate TESS-W sensor spectral response, written in Textual"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Rafael González", email = "rafael08@ucm.es"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+]
+dependencies = [
+  'python-decouple',  # Get info from enviromental variables
+  # Async Database stuff
+  'SQLAlchemy[asyncio]',
+  'alembic',
+  'aiosqlite',
+  # Async I/O and other utilities
+  'aioserial', # Not really needed
+  'aiohttp',
+  #'exceptiongroups', # For Python < 3.11 when using TaskGroups
+  #'asyncstdlib', # async counterparts such as aenumerate()
+  # Textual TUI
+  'textual-dev'
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=6",
+]
+
+[project.urls]
+Homepage = "https://github.com/astrorafael/textual-spectess"
+Repository = "https://github.com/astrorafael/textual-spectess.git"
+
+[project.scripts]
+
+spectess = "spectess.main:main"
+schema = "spectess.dbase.schema:main"
+
+# pyproject.toml
+# Automatically generates a _version-py file from with Git information
+# This file shold be placed in .gitignore
+[tool.setuptools_scm]
+write_to = "src/spectess/_version.py"
+
+[tool.setuptools.packages.find]
+# scanning for namespace packages is true by default in pyproject.toml, so
+# you do NOT need to include the following line.
+namespaces = true
+where = ["src"]
+
+[tool.setuptools]
+script-files = [
+#    "scripts/tessdb_flush",
+]
+
+# Needed for Textual CSS files
+[tool.setuptools.package-data]
+"spectess.tui.css" = ["*.tcss"]

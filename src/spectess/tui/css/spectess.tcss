@@ -1,0 +1,39 @@
+App {
+	width: 114;
+	height: 32;
+}
+
+Footer {
+	height: 1;
+}
+
+#tst_log {
+	background: darkblue;
+}
+
+#complex {
+	layout: grid;
+	grid-size: 2
+}
+
+
+.mylabels
+{
+	margin: 1 0 0 0;	
+}
+
+
+.table {
+	 height: 5fr;
+}
+
+.box {
+    border: heavy yellow;
+    height: 1fr;
+}
+
+Switch {
+    height: auto;
+    width: 14;
+    align: right bottom;
+}
