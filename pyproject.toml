@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "textual-calytess"
 dynamic = ["version"]
-description = "ool to calibrate TESS-W sensor spectral response, written in Textual"
+description = "Tool to calibrate TESS-W sensor spectral response, written in Textual"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
