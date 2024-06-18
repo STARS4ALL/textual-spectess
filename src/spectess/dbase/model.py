@@ -109,16 +109,14 @@ class Samples(Base):
 # Auxiliary functions
 # -------------------
 
-async def schema() -> None:
-    '''The main entry point specified by pyproject.toml'''
-    log.info("Creating/Opening schema %s", url)
+async def aschema() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     await engine.dispose()
 
-def main():
-
+def schema():
+    '''The main entry point specified by pyproject.toml'''
     from spectess import __version__
     from spectess.utils.argsparse import args_parser
     from spectess.utils.logging import configure
@@ -130,4 +128,5 @@ def main():
     )
     args = parser.parse_args(sys.argv[1:])
     configure(args)
-    asyncio.run(schema())
+    log.info("Creating/Opening schema %s", url)
+    asyncio.run(aschema())

@@ -51,7 +51,7 @@ Repository = "https://github.com/astrorafael/textual-spectess.git"
 [project.scripts]
 
 spectess = "spectess.main:main"
-schema = "spectess.dbase.schema:main"
+schema = "spectess.dbase.model:schema"
 
 # pyproject.toml
 # Automatically generates a _version-py file from with Git information
