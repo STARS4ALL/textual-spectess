@@ -137,7 +137,7 @@ class JSONPayload:
     def __init__(self, parent):
         self.parent = parent
         self.log = parent.log
-        self.log.info("%6s: Using %s decoder", parent.label, self.__class__.__name__)
+        self.log.info("Using %s decoder", self.__class__.__name__)
         self._prev_msg = None
 
     # --------------
