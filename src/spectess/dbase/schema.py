@@ -19,7 +19,7 @@ from datetime import datetime
 # SQLAlchemy imports
 # -------------------
 
-from sqlalchemy import create_engine, String, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import create_engine, MetaData, String, ForeignKey, PrimaryKeyConstraint
 
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column, relationship
@@ -47,7 +47,17 @@ log = logging.getLogger(__name__)
 # Data Model as classes
 # ---------------------
 
-Base = declarative_base()
+metadata = MetaData(
+    naming_convention = {
+        'ix': "ix_%(column_0_label)s",
+        'uq': "uq_%(table_name)s_%(column_0_name)s",
+        'ck': "ck_%(table_name)s_%(constraint_name)s",
+        'fk': "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+        'pk': "pk_%(table_name)s",
+    }
+)
+
+Base = declarative_base(metadata=metadata)
 
 class Config(Base):
 
@@ -67,17 +77,21 @@ class Config(Base):
         return f"TESS(id={self.id!r}, nname={self.name!r}, mac={self.mac!r})"
 
 
-class Tess(Base):
+class Photometer(Base):
 
-    __tablename__ = "tess_t"
+    __tablename__ = "photometer_t"
 
-    id:        Mapped[int] = mapped_column(primary_key=True)
-    session:   Mapped[datetime]
-    name:      Mapped[str] = mapped_column(String(10))
-    mac:       Mapped[str] = mapped_column(String(17))
+    id:             Mapped[int] = mapped_column(primary_key=True)
+    name:           Mapped[str] = mapped_column(String(10))
+    mac:            Mapped[str] = mapped_column(String(17))
+    sensor:         Mapped[str] = mapped_column(String(12))
+    model:          Mapped[str] = mapped_column(String(8))
+    firmware:       Mapped[str] = mapped_column(String(17))
+    zero_point:     Mapped[float]
+    freq_offset:    Mapped[float]
 
     # This is not a real column, it s meant for the ORM
-    samples:   Mapped[List['Samples']] = relationship(back_populates="tess")
+    samples:   Mapped[List['Samples']] = relationship(back_populates="photometer_t")
 
     def __repr__(self) -> str:
         return f"TESS(id={self.id!r}, nname={self.name!r}, mac={self.mac!r})"
@@ -87,8 +101,7 @@ class Samples(Base):
     __tablename__ = "samples_t"
 
     id:        Mapped[int] = mapped_column(primary_key=True)
-    tess_id:   Mapped[int] = mapped_column(ForeignKey("tess_t.id"))
-   
+    tess_id:   Mapped[int] = mapped_column(ForeignKey("photometer_t.id"))
     tstamp:    Mapped[datetime]
     session:   Mapped[datetime]
     seq:       Mapped[int]
@@ -97,7 +110,7 @@ class Samples(Base):
     temp_box:  Mapped[float]
 
     # This is not a real column, it s meant for the ORM
-    tess:      Mapped['Tess'] = relationship(back_populates="samples")
+    photometer:      Mapped['Photometer'] = relationship(back_populates="samples")
 
     def __repr__(self) -> str:
         return f"Sample(id={self.id!r}, freq={self.freq!r}, mag={self.mag!r}, seq={self.seq!r})"
@@ -112,7 +125,7 @@ async def schema(url, verbose) -> None:
     engine = create_async_engine(url, echo=verbose)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-        #await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(Base.metadata.create_all)
     await engine.dispose()
 
 def main():
@@ -128,5 +141,5 @@ def main():
     )
     args = parser.parse_args(sys.argv[1:])
     configure(args)
-    url = decouple.config('DATABASE_URL')
-    asynncio.run(schema(url, args.verbose))
+    url = decouple.config('DATABASE_ASYNC_URL')
+    asyncio.run(schema(url, args.verbose))
