@@ -19,18 +19,17 @@ from datetime import datetime
 # SQLAlchemy imports
 # -------------------
 
-from sqlalchemy import create_engine, MetaData, String, ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import String, ForeignKey, PrimaryKeyConstraint
 
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.asyncio import create_async_engine
-
-import decouple
 
 #--------------
 # local imports
 # -------------
+
+from spectess.dbase import url, engine, metadata, Session
 
 # ----------------
 # Module constants
@@ -47,15 +46,6 @@ log = logging.getLogger(__name__)
 # Data Model as classes
 # ---------------------
 
-metadata = MetaData(
-    naming_convention = {
-        'ix': "ix_%(column_0_label)s",
-        'uq': "uq_%(table_name)s_%(column_0_name)s",
-        'ck': "ck_%(table_name)s_%(constraint_name)s",
-        'fk': "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-        'pk': "pk_%(table_name)s",
-    }
-)
 
 Base = declarative_base(metadata=metadata)
 
@@ -119,10 +109,9 @@ class Samples(Base):
 # Auxiliary functions
 # -------------------
 
-async def schema(url, verbose) -> None:
+async def schema() -> None:
     '''The main entry point specified by pyproject.toml'''
     log.info("Creating/Opening schema %s", url)
-    engine = create_async_engine(url, echo=verbose)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
@@ -141,5 +130,4 @@ def main():
     )
     args = parser.parse_args(sys.argv[1:])
     configure(args)
-    url = decouple.config('DATABASE_ASYNC_URL')
-    asyncio.run(schema(url, args.verbose))
+    asyncio.run(schema())
