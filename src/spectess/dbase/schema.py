@@ -43,6 +43,7 @@ from spectess.dbase.model import Model, Photometer, Samples, Config
 
 # get the module logger
 log = logging.getLogger(__name__)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
 # -------------------
 # Auxiliary functions
@@ -64,7 +65,6 @@ async def schema() -> None:
         await conn.run_sync(Model.metadata.create_all)
         await populate(Session)
     await engine.dispose()
-
 
 
 def main():
