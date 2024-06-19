@@ -9,6 +9,7 @@
 # -------------------
 
 import sys
+import uuid
 import asyncio
 import logging
 
@@ -18,6 +19,9 @@ from datetime import datetime
 # ------------------
 # SQLAlchemy imports
 # -------------------
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 #--------------
 # local imports
@@ -44,11 +48,23 @@ log = logging.getLogger(__name__)
 # Auxiliary functions
 # -------------------
 
+async def populate(async_session: async_sessionmaker[AsyncSession]) -> None:
+    async with async_session() as session:
+        async with session.begin():
+            session.add(Config(section="database", prop="uuid", value=str(uuid.uuid4())))
+            session.add(Config(section="calibration", prop="author", value="Rafael González"))
+            session.add(Config(section="calibration", prop="samples", value=25))
+    
+
+
 async def schema() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Model.metadata.drop_all)
         await conn.run_sync(Model.metadata.create_all)
+        await populate(Session)
     await engine.dispose()
+
+
 
 def main():
     '''The main entry point specified by pyproject.toml'''

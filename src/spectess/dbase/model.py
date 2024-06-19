@@ -81,7 +81,7 @@ class Photometer(Model):
     freq_offset:    Mapped[float]
 
     # This is not a real column, it s meant for the ORM
-    samples: Mapped[List['Samples']] = relationship(back_populates="photometer_t")
+    samples: Mapped[List['Samples']] = relationship(back_populates="photometer")
 
     def __repr__(self) -> str:
         return f"TESS(id={self.id!r}, nname={self.name!r}, mac={self.mac!r})"
@@ -100,7 +100,7 @@ class Samples(Model):
     temp_box:  Mapped[float]
 
     # This is not a real column, it s meant for the ORM
-    photometer: Mapped['Photometer'] = relationship(back_populates="samples_t")
+    photometer: Mapped['Photometer'] = relationship(back_populates="samples")
 
     def __repr__(self) -> str:
         return f"Sample(id={self.id!r}, freq={self.freq!r}, mag={self.mag!r}, seq={self.seq!r})"

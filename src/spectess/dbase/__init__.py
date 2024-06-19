@@ -15,8 +15,7 @@
 import decouple
 
 from sqlalchemy import MetaData
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 url = decouple.config('DATABASE_ASYNC_URL')
  
@@ -33,4 +32,4 @@ metadata = MetaData(
     }
 )
 
-Session = sessionmaker(engine)
+Session = async_sessionmaker(engine)
