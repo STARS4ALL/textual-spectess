@@ -62,6 +62,7 @@ class Controller:
         self.engine = engine
         self.Session = Session
         self._samples = 0
+        self._wavelength = 0
         self._save = False
        
 
@@ -81,6 +82,14 @@ class Controller:
         self._samples = int(value)
 
     @property
+    def wavelength(self):
+        return str(self._wavelength)
+
+    @wavelength.setter
+    def wavelength(self, value):
+        self._wavelength = int(value)
+
+    @property
     def save(self):
         return bool(self._save)
 
@@ -94,6 +103,8 @@ class Controller:
         async with self.Session() as session:
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'samples')
             self._samples = int((await session.scalars(q)).one())
+            q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'wavelength')
+            self._wavelength = int((await session.scalars(q)).one())
             
     async def wait(self):
         self.quit_event = asyncio.Event() if self.quit_event is None else self.quit_event

@@ -72,6 +72,7 @@ class SpecTessApp(App[str]):
         self.graph_w = [None, None]
         self.nsamples_w = [None, None]
         self.save_w = None
+        self.wavelength_w = None
         self.SUB_TITLE = description
         super().__init__()
         
@@ -82,9 +83,9 @@ class SpecTessApp(App[str]):
                 yield Switch(id="tst_phot")
                 yield Label("Photometer On/Off", classes="mylabels")
                 yield Label("Number of Samples", classes="mylabels")
-                yield Label("Wavelength [nm]", classes="mylabels")
+                yield Label("Wavelength [nm]", classes="mylabels", )
                 yield Input(placeholder="Number of samples", id="nsamples", type="integer")
-                yield Input(placeholder="Wavelength [nm]")
+                yield Input(placeholder="Wavelength [nm]", id="wavelength", type="integer")
                 yield RadioButton("Save samples", id="save")
                 yield Label("Statistics", classes="mylabels")
                 yield Button("Capture", id="start_button")
@@ -107,6 +108,8 @@ class SpecTessApp(App[str]):
         self.metadata_w[TEST] = self.query_one("#tst_metadata")
         self.nsamples_w[TEST] = self.query_one("#nsamples")
         self.nsamples_w[TEST].value = self.controller.samples
+        self.wavelenth_w = self.query_one("#wavelength")
+        self.wavelenth_w.value = self.controller.wavelength
         self.save_w = self.query_one("#save")
 
     # -----------------------------
