@@ -75,11 +75,11 @@ class Controller:
         return str(self._samples)
 
     async def load(self):
+        '''Load configuration data from the database'''
         async with self.Session() as session:
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'samples')
             self._samples = int((await session.scalars(q)).one())
-            self.ring[TEST] = RingBuffer(self._samples)
-
+            
     async def wait(self):
         self.quit_event = asyncio.Event() if self.quit_event is None else self.quit_event
         await self.quit_event.wait()
@@ -87,6 +87,7 @@ class Controller:
         raise  KeyboardInterrupt("User quits")
 
     async def get_info(self, role):
+        '''Get Photometer Info'''
         try:
             info = await self.photometer[role].get_info()
         except asyncio.exceptions.TimeoutError:
@@ -100,8 +101,18 @@ class Controller:
             self.view.clear_metadata_table(role)
             self.view.update_metadata_table(role, info)
 
+    def start_readings(self, role):
+        self.consumer[role] = asyncio.create_task(self.receptor(role))
+        self.producer[role] = asyncio.create_task(self.photometer[role].readings())
+
+    def cancel_readings(self, role):
+        self.producer[role].cancel()
+        self.consumer[role].cancel()
+        self.view.append_log(role, "READINGS PAUSED")
 
     async def receptor(self, role):
+        '''Receiver consumer coroutine'''
+        self.ring[TEST] = RingBuffer(self._samples)
         while True:
             msg = await self.photometer[role].queue.get()
             self.ring[role].append(msg)
@@ -111,12 +122,5 @@ class Controller:
             data = self.ring[role].frequencies()
             self.view.update_graph(role, data)
 
-    def cancel_readings(self, role):
-        self.producer[role].cancel()
-        self.consumer[role].cancel()
-        self.view.append_log(role, "READINGS PAUSED")
-
-    def start_readings(self, role):
-        self.consumer[role] = asyncio.create_task(self.receptor(role))
-        self.producer[role] = asyncio.create_task(self.photometer[role].readings())
+   
        
