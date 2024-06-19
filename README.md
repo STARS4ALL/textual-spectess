@@ -8,7 +8,7 @@ Tool to calibrate TESS-W sensor spectral response, written in Textual
 REF_ENDPOINT=serial:/dev/ttyUSB0:9600
 TEST_ENDPOINT=udp:192.168.4.1:2255
 DATABASE_URL="sqlite+pysqlite:///spectess.db"
-DATABASE_ASYNC_URL=sqlite+aiosqlite:///spectess.db
+DATABASE_URL=sqlite+aiosqlite:///spectess.db
 ```
 
 # Notes

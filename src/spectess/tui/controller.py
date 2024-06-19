@@ -18,6 +18,7 @@ import asyncio
 # Third party imports
 # -------------------
 
+from sqlalchemy import select
 
 #--------------
 # local imports
@@ -26,6 +27,9 @@ import asyncio
 from spectess.photometer import REF, TEST, label
 from spectess.photometer.tessw import Photometer
 from spectess.ring import RingBuffer 
+
+from spectess.dbase import engine, Session
+from spectess.dbase.model import Config, Samples, Photometer as DbPhotometer
 
 # ----------------
 # Module constants
@@ -48,14 +52,15 @@ log = logging.getLogger()
 
 class Controller:
 
-    def __init__(self, ring_buffer_size=75):
+    def __init__(self):
         self.photometer = [None, None]
         self.producer = [None, None]
         self.consumer = [None, None]
         self.ring = [None, None]
         self.quit_event =  None
         self.photometer[TEST] = Photometer(role=TEST, old_payload=False)
-        self.ring[TEST] = RingBuffer(ring_buffer_size)
+        self.engine = engine
+        self.Session = Session
        
 
     # ----------------------------------------
@@ -65,9 +70,20 @@ class Controller:
     def set_view(self, view):
         self.view = view
 
+    @property
+    def samples(self):
+        return str(self._samples)
+
+    async def load(self):
+        async with self.Session() as session:
+            q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'samples')
+            self._samples = int((await session.scalars(q)).one())
+            self.ring[TEST] = RingBuffer(self._samples)
+
     async def wait(self):
         self.quit_event = asyncio.Event() if self.quit_event is None else self.quit_event
         await self.quit_event.wait()
+        await self.engine.dispose()
         raise  KeyboardInterrupt("User quits")
 
     async def get_info(self, role):

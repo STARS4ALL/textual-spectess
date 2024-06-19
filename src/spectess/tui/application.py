@@ -70,6 +70,7 @@ class SpecTessApp(App[str]):
         self.metadata_w = [None, None]
         self.progress_w = [None, None]
         self.graph_w = [None, None]
+        self.nsamples_w = [None, None]
         self.SUB_TITLE = description
         super().__init__()
         
@@ -81,7 +82,7 @@ class SpecTessApp(App[str]):
                 yield Label("Photometer On/Off", classes="mylabels")
                 yield Label("Number of Samples", classes="mylabels")
                 yield Label("Wavelength [nm]", classes="mylabels")
-                yield Input(placeholder="Number of samples")
+                yield Input(placeholder="Number of samples", id="nsamples", type="integer")
                 yield Input(placeholder="Wavelength [nm]")
                 yield RadioButton("Save samples")
                 yield Label("Statistics", classes="mylabels")
@@ -103,8 +104,9 @@ class SpecTessApp(App[str]):
         self.switch_w[TEST] = self.query_one("#tst_phot")
         self.switch_w[TEST].border_title = 'OFF / ON'
         self.metadata_w[TEST] = self.query_one("#tst_metadata")
+        self.nsamples_w[TEST] = self.query_one("#nsamples")
+        self.nsamples_w[TEST].value = self.controller.samples
 
-       
     # -----------------------------
     # API exposed to the Controller
     # -----------------------------

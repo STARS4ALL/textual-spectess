@@ -17,7 +17,7 @@ import decouple
 from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-url = decouple.config('DATABASE_ASYNC_URL')
+url = decouple.config('DATABASE_URL')
  
 engine = create_async_engine(url, echo=True)
 

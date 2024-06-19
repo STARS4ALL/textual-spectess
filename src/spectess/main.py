@@ -26,6 +26,7 @@ from spectess.utils.argsparse import args_parser
 from spectess.utils.logging import configure
 from spectess.tui.application import SpecTessApp
 from spectess.tui.controller import Controller
+from spectess.dbase import engine, Session
 
 # ----------------
 # Module constants
@@ -47,6 +48,7 @@ async def bootstrap():
     controller = Controller()
     tui = SpecTessApp(controller, DESCRIPTION)
     controller.set_view(tui)
+    await controller.load() # load all configuration from the database
     t1 = asyncio.create_task(tui.run_async())
     t2 = asyncio.create_task(controller.wait())
     await asyncio.gather(t1, t2)
