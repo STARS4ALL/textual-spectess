@@ -73,7 +73,7 @@ class Photometer(Model):
 
     id:             Mapped[int] = mapped_column(primary_key=True)
     name:           Mapped[str] = mapped_column(String(10))
-    mac:            Mapped[str] = mapped_column(String(17))
+    mac:            Mapped[str] = mapped_column(String(17), unique=True)
     sensor:         Mapped[str] = mapped_column(String(12))
     model:          Mapped[str] = mapped_column(String(8))
     firmware:       Mapped[str] = mapped_column(String(17))

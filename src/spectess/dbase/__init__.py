@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 url = decouple.config('DATABASE_URL')
  
-engine = create_async_engine(url, echo=True)
+engine = create_async_engine(url, echo=False)
 
 metadata = MetaData(
 	# For the different artifacts (indexes, constraints, etc.)

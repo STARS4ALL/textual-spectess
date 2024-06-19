@@ -115,6 +115,8 @@ class HTMLInfo:
             result['model'] = "TESS-WAY"
         else:
             result['model'] = matchobj.groups(1)[0]
+        result['sensor'] = 'TSL237'
+        self.log.warn("Sensor model is set to %s by default", result['sensor'])
         return result
 
 

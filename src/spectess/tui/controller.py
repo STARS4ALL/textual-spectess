@@ -19,6 +19,7 @@ import asyncio
 # -------------------
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 #--------------
 # local imports
@@ -126,6 +127,23 @@ class Controller:
         else:
             self.view.clear_metadata_table(role)
             self.view.update_metadata_table(role, info)
+            async with self.Session() as session:
+                async with session.begin():
+                    try:
+                        session.add(
+                            DbPhotometer(
+                                name= info.get('name'), 
+                                mac = info.get('mac'),
+                                sensor = info.get('sensor'),
+                                model = info.get('model'),
+                                firmware = info.get('firmware'),
+                                zero_point = info.get('zp'),
+                                freq_offset = info.get('freq_offset'),
+                            )
+                        )
+                    except Exception:
+                        log.warn("Ignoring already saved photometer entry")
+                    
 
     def start_readings(self, role):
         self.consumer[role] = asyncio.create_task(self.receptor(role))
