@@ -79,11 +79,13 @@ class SpecTessApp(App[str]):
             with Vertical(id="complex"):
                 yield Switch(id="tst_phot")
                 yield Label("Photometer On/Off", classes="mylabels")
+                yield Label("Number of Samples", classes="mylabels")
+                yield Label("Wavelength [nm]", classes="mylabels")
                 yield Input(placeholder="Number of samples")
                 yield Input(placeholder="Wavelength [nm]")
                 yield RadioButton("Save samples")
                 yield Label("Statistics", classes="mylabels")
-                yield Button("Capture")
+                yield Button("Capture", id="start_button")
                 yield ProgressBar(id="tst_ring", total=100, show_eta=False)
             yield DataTable(id="tst_metadata")
         yield Log(id="tst_log", classes="box")
@@ -134,3 +136,7 @@ class SpecTessApp(App[str]):
             w = self.run_worker(self.controller.get_info(TEST), exclusive=True)
         else:
             self.clear_metadata_table(TEST)
+
+    @on(Button.Pressed, "#start_button")
+    def button_pressed(self, event: Button.Pressed) -> None:
+        self.exit(str(event.button))

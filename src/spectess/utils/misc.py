@@ -4,6 +4,12 @@
 # See the LICENSE file for details
 # ----------------------------------------------------------------------
 
+#--------------------
+# System wide imports
+# -------------------
+
+import datetime
+
 def chop(string, sep=None):
     '''Chop a list of strings, separated by sep and 
     strips individual string items from leading and trailing blanks'''
@@ -12,3 +18,5 @@ def chop(string, sep=None):
     	chopped = tuple()
     return chopped
 
+def session_id() -> int:
+	return datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d%H%M%S')

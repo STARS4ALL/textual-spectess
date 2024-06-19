@@ -8,14 +8,11 @@
 # System wide imports
 # -------------------
 
-import sys
 import argparse
 
 #--------------
 # local imports
 # -------------
-
-from spectess import __version__
 
 # ----------------
 # Module constants
