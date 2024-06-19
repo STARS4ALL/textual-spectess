@@ -80,38 +80,38 @@ class HTMLInfo:
         result = {}
         result['tstamp'] = datetime.datetime.now(datetime.timezone.utc)
         url = self._make_state_url()
-        self.log.info("%6s  get info from %s", label, url)
+        self.log.info("Get info from %s", url)
         async with aiohttp.ClientSession() as session:
             async with session.get(url, timeout=timeout) as response:
                 text = await response.text()
         matchobj = self.GET_INFO['name'].search(text)
         if not matchobj:
-            self.log.error("%6s name not found!. Check unit's name", label)
+            self.log.error("name not found!. Check unit's name")
         result['name'] = matchobj.groups(1)[0]
         matchobj = self.GET_INFO['mac'].search(text)
         if not matchobj:
-            self.log.error("%6s MAC not found!", label)
+            self.log.error("MAC not found!")
         result['mac'] = formatted_mac(matchobj.groups(1)[0])
         matchobj = self.GET_INFO['zp'].search(text)
         if not matchobj:
-            self.log.error("%6s ZP not found!", label)
+            self.log.error("ZP not found!")
         result['zp'] = float(matchobj.groups(1)[1]) # Beware the seq index, it is not 0 as usual. See the regexp!
         matchobj = self.GET_INFO['firmware'].search(text)
         if not matchobj:
-            self.log.error("%6s Firmware not found!", label)
+            self.log.error("Firmware not found!")
         result['firmware'] = matchobj.groups(1)[0]
         firmware = result['firmware']
         if firmware in self.CONFLICTIVE_FIRMWARE:
             pub.sendMessage('phot_firmware', role='test', firmware=firmware)
         matchobj = self.GET_INFO['freq_offset'].search(text)
         if not matchobj:
-            self.log.warn("%6s Frequency offset not found, defaults to 0.0 mHz", label)
+            self.log.warn("Frequency offset not found, defaults to 0.0 mHz")
             result['freq_offset'] = 0.0
         else:
             result['freq_offset'] = float(matchobj.groups(1)[0])/1000.0
         matchobj = self.GET_INFO['model'].search(text)
         if not matchobj:
-            self.log.warn("%6s Model not found, defaults to TESS-W", label)
+            self.log.warn("Model not found, defaults to TESS-W")
             result['model'] = "TESS-WAY"
         else:
             result['model'] = matchobj.groups(1)[0]
