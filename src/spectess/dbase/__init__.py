@@ -23,6 +23,7 @@ url = decouple.config('DATABASE_ASYNC_URL')
 engine = create_async_engine(url, echo=True)
 
 metadata = MetaData(
+	# For the different artifacts (indexes, constraints, etc.)
     naming_convention = {
         'ix': "ix_%(column_0_label)s",
         'uq': "uq_%(table_name)s_%(column_0_name)s",

@@ -47,9 +47,9 @@ log = logging.getLogger(__name__)
 # ---------------------
 
 
-Base = declarative_base(metadata=metadata)
+Model = declarative_base(metadata=metadata)
 
-class Config(Base):
+class Config(Model):
 
     __tablename__ = "config_t"
 
@@ -67,7 +67,7 @@ class Config(Base):
         return f"TESS(id={self.id!r}, nname={self.name!r}, mac={self.mac!r})"
 
 
-class Photometer(Base):
+class Photometer(Model):
 
     __tablename__ = "photometer_t"
 
@@ -81,52 +81,27 @@ class Photometer(Base):
     freq_offset:    Mapped[float]
 
     # This is not a real column, it s meant for the ORM
-    samples:   Mapped[List['Samples']] = relationship(back_populates="photometer_t")
+    samples: Mapped[List['Samples']] = relationship(back_populates="photometer_t")
 
     def __repr__(self) -> str:
         return f"TESS(id={self.id!r}, nname={self.name!r}, mac={self.mac!r})"
    
 
-class Samples(Base):
+class Samples(Model):
     __tablename__ = "samples_t"
 
     id:        Mapped[int] = mapped_column(primary_key=True)
     tess_id:   Mapped[int] = mapped_column(ForeignKey("photometer_t.id"))
     tstamp:    Mapped[datetime]
-    session:   Mapped[datetime]
+    session:   Mapped[int]
     seq:       Mapped[int]
     mag:       Mapped[float]
     freq:      Mapped[float]
     temp_box:  Mapped[float]
 
     # This is not a real column, it s meant for the ORM
-    photometer:      Mapped['Photometer'] = relationship(back_populates="samples")
+    photometer: Mapped['Photometer'] = relationship(back_populates="samples_t")
 
     def __repr__(self) -> str:
         return f"Sample(id={self.id!r}, freq={self.freq!r}, mag={self.mag!r}, seq={self.seq!r})"
 
-# -------------------
-# Auxiliary functions
-# -------------------
-
-async def aschema() -> None:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-    await engine.dispose()
-
-def schema():
-    '''The main entry point specified by pyproject.toml'''
-    from spectess import __version__
-    from spectess.utils.argsparse import args_parser
-    from spectess.utils.logging import configure
-
-    parser = args_parser(
-        name = __name__,
-        version = __version__,
-        description = "Example SQLAlchemy App"
-    )
-    args = parser.parse_args(sys.argv[1:])
-    configure(args)
-    log.info("Creating/Opening schema %s", url)
-    asyncio.run(aschema())
