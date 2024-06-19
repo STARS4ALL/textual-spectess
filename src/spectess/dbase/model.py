@@ -20,16 +20,15 @@ from datetime import datetime
 # -------------------
 
 from sqlalchemy import String, ForeignKey, PrimaryKeyConstraint
-
 from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column, relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.ext.asyncio import AsyncAttrs
 
 #--------------
 # local imports
 # -------------
 
-from spectess.dbase import url, engine, metadata, Session
+from spectess.dbase import url, engine, metadata as metadata_obj, Session
 
 # ----------------
 # Module constants
@@ -46,8 +45,8 @@ log = logging.getLogger(__name__)
 # Data Model as classes
 # ---------------------
 
-
-Model = declarative_base(metadata=metadata)
+class Model(AsyncAttrs, DeclarativeBase):
+    metadata = metadata_obj
 
 class Config(Model):
 

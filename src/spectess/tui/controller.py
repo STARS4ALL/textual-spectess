@@ -41,7 +41,6 @@ from spectess.dbase.model import Config, Samples, Photometer as DbPhotometer
 # -----------------------
 
 # get the root logger
-log = logging.getLogger()
 
 # -------------------
 # Auxiliary functions
@@ -115,6 +114,7 @@ class Controller:
 
     async def get_info(self, role):
         '''Get Photometer Info'''
+        log = logging.getLogger(label(role))
         try:
             info = await self.photometer[role].get_info()
         except asyncio.exceptions.TimeoutError:
@@ -128,10 +128,9 @@ class Controller:
             self.view.clear_metadata_table(role)
             self.view.update_metadata_table(role, info)
             async with self.Session() as session:
-                async with session.begin():
-                    try:
-                        session.add(
-                            DbPhotometer(
+                try:
+                    session.add(
+                        DbPhotometer(
                                 name= info.get('name'), 
                                 mac = info.get('mac'),
                                 sensor = info.get('sensor'),
@@ -140,9 +139,12 @@ class Controller:
                                 zero_point = info.get('zp'),
                                 freq_offset = info.get('freq_offset'),
                             )
-                        )
-                    except Exception:
-                        log.warn("Ignoring already saved photometer entry")
+                    )
+                    await session.commit()
+                except Exception as e:
+                    log.warn("Ignoring already saved photometer entry")
+                    await session.rollback()
+                    
                     
 
     def start_readings(self, role):
