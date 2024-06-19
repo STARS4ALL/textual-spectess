@@ -61,6 +61,8 @@ class Controller:
         self.photometer[TEST] = Photometer(role=TEST, old_payload=False)
         self.engine = engine
         self.Session = Session
+        self._samples = 0
+        self._save = False
        
 
     # ----------------------------------------
@@ -73,6 +75,19 @@ class Controller:
     @property
     def samples(self):
         return str(self._samples)
+
+    @samples.setter
+    def samples(self, value):
+        self._samples = int(value)
+
+    @property
+    def save(self):
+        return bool(self._save)
+
+    @save.setter
+    def save(self, value):
+        log.info("setting save to %s", value)
+        self._save = bool(value)
 
     async def load(self):
         '''Load configuration data from the database'''
@@ -113,14 +128,17 @@ class Controller:
     async def receptor(self, role):
         '''Receiver consumer coroutine'''
         self.ring[TEST] = RingBuffer(self._samples)
-        while True:
+        while len(self.ring[role]) < self._samples:
             msg = await self.photometer[role].queue.get()
             self.ring[role].append(msg)
             line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{msg.get('seq')}] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
             self.view.append_log(role, line)
             self.view.update_progress(role, 1)
-            data = self.ring[role].frequencies()
-            self.view.update_graph(role, data)
+        self.view.append_log(role, "BUFFER FULL, CALCULATING STATS")
+        median, stdev = self.ring[role].statistics()
 
-   
+    # ----------------------
+    # Private helper methods
+    # ----------------------
+        
        

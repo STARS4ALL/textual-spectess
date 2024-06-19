@@ -18,5 +18,6 @@ def chop(string, sep=None):
     	chopped = tuple()
     return chopped
 
-def session_id() -> int:
+def measurements_session_id() -> int:
+	'''returns a unique session Id for meassurements'''
 	return datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d%H%M%S')

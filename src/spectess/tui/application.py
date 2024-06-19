@@ -71,6 +71,7 @@ class SpecTessApp(App[str]):
         self.progress_w = [None, None]
         self.graph_w = [None, None]
         self.nsamples_w = [None, None]
+        self.save_w = None
         self.SUB_TITLE = description
         super().__init__()
         
@@ -84,7 +85,7 @@ class SpecTessApp(App[str]):
                 yield Label("Wavelength [nm]", classes="mylabels")
                 yield Input(placeholder="Number of samples", id="nsamples", type="integer")
                 yield Input(placeholder="Wavelength [nm]")
-                yield RadioButton("Save samples")
+                yield RadioButton("Save samples", id="save")
                 yield Label("Statistics", classes="mylabels")
                 yield Button("Capture", id="start_button")
                 yield ProgressBar(id="tst_ring", total=100, show_eta=False)
@@ -106,6 +107,7 @@ class SpecTessApp(App[str]):
         self.metadata_w[TEST] = self.query_one("#tst_metadata")
         self.nsamples_w[TEST] = self.query_one("#nsamples")
         self.nsamples_w[TEST].value = self.controller.samples
+        self.save_w = self.query_one("#save")
 
     # -----------------------------
     # API exposed to the Controller
@@ -133,12 +135,16 @@ class SpecTessApp(App[str]):
     # ----------------------
 
     @on(Switch.Changed, "#tst_phot")
-    def tst_switch_pressed(self, message):
-        if message.control.value:
+    def tst_switch_pressed(self, event):
+        if event.control.value:
             w = self.run_worker(self.controller.get_info(TEST), exclusive=True)
         else:
             self.clear_metadata_table(TEST)
 
+    @on(RadioButton.Changed, "#save")
+    def save_pressed(self, event: Button.Pressed) -> None:
+        self.controller.save = event.control.value
+
     @on(Button.Pressed, "#start_button")
-    def button_pressed(self, event: Button.Pressed) -> None:
+    def start_pressed(self, event: Button.Pressed) -> None:
         self.exit(str(event.button))
