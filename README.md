@@ -21,3 +21,8 @@ If you want to process something in the background you will need to creat a new 
 textual console
 textual run --dev -c spectess --textual --log-file kk.log
 ```
+
+Prepare migrations with alembic
+```bash
+alembic init -t async src/migrations
+```
