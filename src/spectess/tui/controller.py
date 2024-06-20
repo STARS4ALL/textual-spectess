@@ -178,6 +178,7 @@ class Controller:
                             mag = s['mag'],
                             freq = s['freq'],
                             temp_box = s['tamb'],
+                            wave = self._wavelength,
                         )
                     )
                 session.add(dbphot)
