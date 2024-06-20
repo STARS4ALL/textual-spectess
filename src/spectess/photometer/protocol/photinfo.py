@@ -27,7 +27,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 # local imports
 # -------------
 
-from spectess.photometer import REF, TEST
+from .. import REF, TEST
 
 # ----------------
 # Module constants
