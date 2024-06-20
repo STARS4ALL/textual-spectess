@@ -71,6 +71,9 @@ class OldPayload:
     # Public API
     # ----------
 
+    def clear(self):
+        self._prev_msg = None 
+
     def decode(self, data: bytes, tstamp: datetime.datetime) -> (bool, dict):
         data = data.decode()
         self.parent.log.info("<== [%02d] %s", len(data), data)
@@ -157,6 +160,9 @@ class JSONPayload:
     # ----------
     # Public API
     # ----------
+
+    def clear(self):
+        self._prev_msg = None 
 
     def decode(self, data: bytes, tstamp: datetime.datetime) -> (bool, dict):
         data = data.decode()

@@ -150,6 +150,8 @@ class Controller:
                     
 
     def start_readings(self, role):
+        self.photometer[role].clear()
+        self.ring[role] = RingBuffer(capacity=self._samples)
         self.consumer[role] = asyncio.create_task(self.receive(role))
         self.producer[role] = asyncio.create_task(self.photometer[role].readings())
 
@@ -187,7 +189,6 @@ class Controller:
     async def receive(self, role):
         '''Receiver consumer coroutine'''
         log = logging.getLogger(label(role))
-        self.ring[role] = RingBuffer(capacity=self._samples)
         while len(self.ring[role]) < self._samples:
             msg = await self.photometer[role].queue.get()
             self.ring[role].append(msg)

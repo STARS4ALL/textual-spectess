@@ -104,6 +104,9 @@ class Photometer:
     # Public API
     # ----------
 
+    def clear(self):
+        self.decoder.clear()
+    
     async def readings(self):
         return await self.transport.readings()
 
