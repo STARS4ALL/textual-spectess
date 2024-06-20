@@ -27,11 +27,12 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 # local imports
 # -------------
 
-from spectess import __version__
-from spectess.utils.argsparse import args_parser
-from spectess.utils.logging import configure
-from spectess.dbase import url, engine, metadata, Session
-from spectess.dbase.model import Model, Photometer, Samples, Config
+from .. import __version__
+from ..utils.argsparse import args_parser
+from ..utils.logging import configure
+
+from . import url, engine, metadata, Session
+from .model import Model, Photometer, Samples, Config
 
 # ----------------
 # Module constants

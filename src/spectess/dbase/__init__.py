@@ -32,4 +32,4 @@ metadata = MetaData(
     }
 )
 
-Session = async_sessionmaker(engine)
+Session = async_sessionmaker(engine, expire_on_commit=False)

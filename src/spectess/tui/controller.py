@@ -25,12 +25,12 @@ from sqlalchemy.exc import IntegrityError
 # local imports
 # -------------
 
-from spectess.photometer import REF, TEST, label
-from spectess.photometer.tessw import Photometer
-from spectess.ring import RingBuffer 
+from ..photometer import REF, TEST, label
+from ..photometer.tessw import Photometer
+from ..ring import RingBuffer 
 
-from spectess.dbase import engine, Session
-from spectess.dbase.model import Config, Samples, Photometer as DbPhotometer
+from ..dbase import engine, Session
+from ..dbase.model import Config, Samples, Photometer as DbPhotometer
 
 # ----------------
 # Module constants
@@ -162,7 +162,7 @@ class Controller:
             try:
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
                 dbphot = (await session.scalars(q)).one()
-                _ = await dbphot.awaitable_attrs.samples
+                _ = await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
                 while len(self.ring[role]) > 0:
                     s = self.ring[role].pop()
                     dbphot.samples.append(

@@ -28,7 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 # local imports
 # -------------
 
-from spectess.dbase import url, engine, metadata as metadata_obj, Session
+from . import url, engine, metadata as metadata_obj, Session
 
 # ----------------
 # Module constants

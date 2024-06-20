@@ -19,11 +19,11 @@ import logging
 # local imports
 # -------------
 
-from spectess import __version__
-from spectess.utils.argsparse import args_parser
-from spectess.utils.logging import configure
-from spectess.tui.application import SpecTessApp
-from spectess.tui.controller import Controller
+from . import __version__
+from .utils.argsparse import args_parser
+from .utils.logging import configure
+from .tui.application import SpecTessApp
+from .tui.controller import Controller
 
 # ----------------
 # Module constants

@@ -28,7 +28,7 @@ from textual.containers import Horizontal, Vertical
 # local imports
 # -------------
 
-from spectess.photometer import REF, TEST, label
+from ..photometer import REF, TEST, label
 
 # ----------------
 # Module constants
