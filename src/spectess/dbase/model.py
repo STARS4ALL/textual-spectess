@@ -90,7 +90,7 @@ class Samples(Model):
     __tablename__ = "samples_t"
 
     id:        Mapped[int] = mapped_column(primary_key=True)
-    tess_id:   Mapped[int] = mapped_column(ForeignKey("photometer_t.id"))
+    tess_id:   Mapped[int] = mapped_column(ForeignKey("photometer_t.id"), index=True)
     tstamp:    Mapped[datetime]
     session:   Mapped[int]
     seq:       Mapped[int]
