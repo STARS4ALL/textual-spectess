@@ -26,7 +26,7 @@ from spectess.utils.argsparse import args_parser
 from spectess.utils.logging import configure
 from spectess.tui.application import SpecTessApp
 from spectess.tui.controller import Controller
-from spectess.dbase import engine, Session
+from spectess.dbase import engine
 
 # ----------------
 # Module constants
@@ -49,9 +49,9 @@ async def bootstrap():
     tui = SpecTessApp(controller, DESCRIPTION)
     controller.set_view(tui)
     await controller.load() # load all configuration from the database
-    t1 = asyncio.create_task(tui.run_async())
-    t2 = asyncio.create_task(controller.wait())
-    await asyncio.gather(t1, t2)
+    tui_task = asyncio.create_task(tui.run_async())
+    await tui_task
+    await engine.dispose()
 
 def main():
     '''The main entry point specified by pyproject.toml'''
@@ -60,7 +60,6 @@ def main():
         version = __version__,
         description = DESCRIPTION
     )
-   
     args = parser.parse_args(sys.argv[1:])
     configure(args)
     try:

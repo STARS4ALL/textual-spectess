@@ -52,6 +52,9 @@ class RingBuffer:
         self._zp = zp
         self._fo = fo
 
+    def __len__(self):
+        return len(self._buffer)
+
     def append(self, item):
         self._buffer.append(item)
 
@@ -63,7 +66,8 @@ class RingBuffer:
         
     def statistics(self):
         frequencies = [item['freq'] for item in self._buffer]
-        aver = statistics.median_low(frequencies)
+        median = statistics.median_low(frequencies)
+        aver = statistics.fmean(frequencies)
         stdev = statistics.stdev(frequencies, aver)
-        return aver, stdev
+        return median, aver, stdev
     

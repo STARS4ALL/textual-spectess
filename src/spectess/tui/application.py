@@ -128,14 +128,12 @@ class SpecTessApp(App[str]):
     def update_metadata_table(self, role, metadata):
         self.metadata_w[role].add_rows(metadata.items())
 
-    def action_quit(self):
-        self.controller.quit_event.set()
-        self.exit(return_code=2)
-
-
     # ----------------------
     # Textual event handlers
     # ----------------------
+
+    def action_quit(self):
+        self.controller.quit()
 
     @on(Switch.Changed, "#tst_phot")
     def tst_switch_pressed(self, event):
@@ -150,4 +148,4 @@ class SpecTessApp(App[str]):
 
     @on(Button.Pressed, "#start_button")
     def start_pressed(self, event: Button.Pressed) -> None:
-        self.exit(str(event.button))
+        self.controller.start_readings(TEST)

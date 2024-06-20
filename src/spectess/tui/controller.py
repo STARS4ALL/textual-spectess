@@ -73,6 +73,9 @@ class Controller:
     def set_view(self, view):
         self.view = view
 
+    def quit(self):
+        self.view.exit(return_code=2)
+
     @property
     def samples(self):
         return str(self._samples)
@@ -105,13 +108,8 @@ class Controller:
             self._samples = int((await session.scalars(q)).one())
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'wavelength')
             self._wavelength = int((await session.scalars(q)).one())
-            
-    async def wait(self):
-        self.quit_event = asyncio.Event() if self.quit_event is None else self.quit_event
-        await self.quit_event.wait()
-        await self.engine.dispose()
-        raise  KeyboardInterrupt("User quits")
-
+    
+        
     async def get_info(self, role):
         '''Get Photometer Info'''
         log = logging.getLogger(label(role))
@@ -131,13 +129,13 @@ class Controller:
                 try:
                     session.add(
                         DbPhotometer(
-                                name= info.get('name'), 
-                                mac = info.get('mac'),
-                                sensor = info.get('sensor'),
-                                model = info.get('model'),
-                                firmware = info.get('firmware'),
-                                zero_point = info.get('zp'),
-                                freq_offset = info.get('freq_offset'),
+                            name= info.get('name'), 
+                            mac = info.get('mac'),
+                            sensor = info.get('sensor'),
+                            model = info.get('model'),
+                            firmware = info.get('firmware'),
+                            zero_point = info.get('zp'),
+                            freq_offset = info.get('freq_offset'),
                             )
                     )
                     await session.commit()
@@ -148,25 +146,24 @@ class Controller:
                     
 
     def start_readings(self, role):
-        self.consumer[role] = asyncio.create_task(self.receptor(role))
+        self.consumer[role] = asyncio.create_task(self.receive(role))
         self.producer[role] = asyncio.create_task(self.photometer[role].readings())
 
-    def cancel_readings(self, role):
-        self.producer[role].cancel()
-        self.consumer[role].cancel()
-        self.view.append_log(role, "READINGS PAUSED")
 
-    async def receptor(self, role):
+    async def receive(self, role):
         '''Receiver consumer coroutine'''
-        self.ring[TEST] = RingBuffer(self._samples)
+        log = logging.getLogger(label(role))
+        self.ring[role] = RingBuffer(capacity=self._samples)
         while len(self.ring[role]) < self._samples:
             msg = await self.photometer[role].queue.get()
             self.ring[role].append(msg)
             line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{msg.get('seq')}] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
             self.view.append_log(role, line)
-            self.view.update_progress(role, 1)
-        self.view.append_log(role, "BUFFER FULL, CALCULATING STATS")
-        median, stdev = self.ring[role].statistics()
+        self.producer[role].cancel()
+        median, mean, stdev = self.ring[role].statistics()
+        line = f"For \u03BB = {self._wavelength} nm => median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz"
+        self.view.append_log(role, line)
+       
 
     # ----------------------
     # Private helper methods
