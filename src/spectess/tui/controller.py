@@ -40,7 +40,9 @@ from spectess.dbase.model import Config, Samples, Photometer as DbPhotometer
 # Module global variables
 # -----------------------
 
-# get the root logger
+# get the logger
+
+log = logging.getLogger(__name__)
 
 # -------------------
 # Auxiliary functions
@@ -103,6 +105,7 @@ class Controller:
 
     async def load(self):
         '''Load configuration data from the database'''
+        log.info("loading configuration data")
         async with self.Session() as session:
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'samples')
             self._samples = int((await session.scalars(q)).one())

@@ -15,8 +15,6 @@ import logging
 # Third party imports
 # -------------------
 
-import asyncio
-
 #--------------
 # local imports
 # -------------
@@ -26,7 +24,6 @@ from spectess.utils.argsparse import args_parser
 from spectess.utils.logging import configure
 from spectess.tui.application import SpecTessApp
 from spectess.tui.controller import Controller
-from spectess.dbase import engine
 
 # ----------------
 # Module constants
@@ -44,15 +41,6 @@ log = logging.getLogger()
 # Auxiliary functions
 # -------------------
 
-async def bootstrap():
-    controller = Controller()
-    tui = SpecTessApp(controller, DESCRIPTION)
-    controller.set_view(tui)
-    await controller.load() # load all configuration from the database
-    tui_task = asyncio.create_task(tui.run_async())
-    await tui_task
-    await engine.dispose()
-
 def main():
     '''The main entry point specified by pyproject.toml'''
     parser = args_parser(
@@ -63,6 +51,9 @@ def main():
     args = parser.parse_args(sys.argv[1:])
     configure(args)
     try:
-        asyncio.run(bootstrap())
+        controller = Controller()
+        tui = SpecTessApp(controller, DESCRIPTION)
+        controller.set_view(tui)
+        tui.run()
     except KeyboardInterrupt:
         log.warn("Application quits by user request")

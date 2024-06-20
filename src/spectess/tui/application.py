@@ -13,8 +13,6 @@ import sys
 import argparse
 import logging
 
-import statistics
-
 # ---------------
 # Textual imports
 # ---------------
@@ -41,7 +39,7 @@ from spectess.photometer import REF, TEST, label
 # -----------------------
 
 # get the root logger
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 # -------------------
 # Auxiliary functions
@@ -62,7 +60,6 @@ class SpecTessApp(App[str]):
     ]
 
     def __init__(self, controller, description):
-       
         self.controller = controller
         # Widget references in REF/TEST pairs
         self.log_w = [None, None]
@@ -95,7 +92,8 @@ class SpecTessApp(App[str]):
         yield Footer()
         
 
-    def on_mount(self) -> None:      
+    async def on_mount(self) -> None:   
+        await self.controller.load()
         for ident in ("#tst_metadata",):
             table = self.query_one(ident)
             table.add_columns(*("Property", "Value"))
@@ -111,6 +109,7 @@ class SpecTessApp(App[str]):
         self.wavelenth_w = self.query_one("#wavelength")
         self.wavelenth_w.value = self.controller.wavelength
         self.save_w = self.query_one("#save")
+       
 
     # -----------------------------
     # API exposed to the Controller
