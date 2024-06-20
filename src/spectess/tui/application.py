@@ -45,10 +45,10 @@ log = logging.getLogger(__name__)
 # Auxiliary functions
 # -------------------
 
-class SpecTessApp(App[str]):
+class MyTextualApp(App[str]):
 
     TITLE = "SpecTESS-W"
-    SUB_TITLE = "TESS-W Zero Joser Calibration tool"
+    SUB_TITLE = "TESS-W Spectra acquisition tool"
 
     # Seems the bindings are for the Footer widget
     BINDINGS = [
@@ -56,7 +56,7 @@ class SpecTessApp(App[str]):
     ]
 
     CSS_PATH = [
-        os.path.join("css", "spectess.tcss"),
+        os.path.join("css", "mytextualapp.tcss"),
     ]
 
     def __init__(self, controller, description):

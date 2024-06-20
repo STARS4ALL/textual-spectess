@@ -22,7 +22,7 @@ import logging
 from . import __version__
 from .utils.argsparse import args_parser
 from .utils.logging import configure
-from .tui.application import SpecTessApp
+from .tui.application import MyTextualApp
 from .tui.controller import Controller
 
 # ----------------
@@ -52,7 +52,7 @@ def main():
     configure(args)
     try:
         controller = Controller()
-        tui = SpecTessApp(controller, DESCRIPTION)
+        tui = MyTextualApp(controller, DESCRIPTION)
         controller.set_view(tui)
         tui.run()
     except KeyboardInterrupt:

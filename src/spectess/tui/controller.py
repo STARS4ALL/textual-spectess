@@ -195,7 +195,7 @@ class Controller:
             self.view.append_log(role, line)
         self.producer[role].cancel()
         median, mean, stdev = self.ring[role].statistics()
-        line = f"For \u03BB = {self._wavelength} nm => median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz"
+        line = f"median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
         self.view.append_log(role, line)
         await self.save_samples(role)
        
