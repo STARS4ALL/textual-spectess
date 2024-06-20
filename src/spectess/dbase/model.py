@@ -67,7 +67,6 @@ class Config(Model):
 
 
 class Photometer(Model):
-
     __tablename__ = "photometer_t"
 
     id:             Mapped[int] = mapped_column(primary_key=True)
@@ -83,24 +82,25 @@ class Photometer(Model):
     samples: Mapped[List['Samples']] = relationship(back_populates="photometer")
 
     def __repr__(self) -> str:
-        return f"TESS(id={self.id!r}, nname={self.name!r}, mac={self.mac!r})"
+        return f"TESS(id={self.id!r}, name={self.name!r}, mac={self.mac!r})"
    
 
 class Samples(Model):
     __tablename__ = "samples_t"
 
-    id:        Mapped[int] = mapped_column(primary_key=True)
-    tess_id:   Mapped[int] = mapped_column(ForeignKey("photometer_t.id"), index=True)
-    tstamp:    Mapped[datetime]
-    session:   Mapped[int]
-    seq:       Mapped[int]
-    mag:       Mapped[float]
-    freq:      Mapped[float]
-    temp_box:  Mapped[float]
+    id:         Mapped[int] = mapped_column(primary_key=True)
+    tess_id:    Mapped[int] = mapped_column(ForeignKey("photometer_t.id"), index=True)
+    tstamp:     Mapped[datetime]
+    session:    Mapped[int]
+    seq:        Mapped[int]
+    mag:        Mapped[float]
+    freq:       Mapped[float]
+    temp_box:   Mapped[float]
+    wave:       Mapped[int]
 
     # This is not a real column, it s meant for the ORM
     photometer: Mapped['Photometer'] = relationship(back_populates="samples")
 
     def __repr__(self) -> str:
-        return f"Sample(id={self.id!r}, freq={self.freq!r}, mag={self.mag!r}, seq={self.seq!r})"
+        return f"Sample(id={self.id!r}, freq={self.freq!r}, mag={self.mag!r}, seq={self.seq!r}, wave={self.wave})"
 

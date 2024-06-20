@@ -55,6 +55,9 @@ class RingBuffer:
     def __len__(self):
         return len(self._buffer)
 
+    def pop(self):
+        return self._buffer.popleft()
+
     def append(self, item):
         self._buffer.append(item)
 

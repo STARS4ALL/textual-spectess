@@ -18,7 +18,7 @@ import asyncio
 # Third party imports
 # -------------------
 
-from sqlalchemy import select
+from sqlalchemy import select, inspect
 from sqlalchemy.exc import IntegrityError
 
 #--------------
@@ -129,6 +129,7 @@ class Controller:
             self.view.clear_metadata_table(role)
             self.view.update_metadata_table(role, info)
             async with self.Session() as session:
+                session.begin()
                 try:
                     session.add(
                         DbPhotometer(
@@ -139,18 +140,48 @@ class Controller:
                             firmware = info.get('firmware'),
                             zero_point = info.get('zp'),
                             freq_offset = info.get('freq_offset'),
-                            )
+                        )
                     )
                     await session.commit()
                 except Exception as e:
                     log.warn("Ignoring already saved photometer entry")
                     await session.rollback()
-                    
+            self._cur_mac = info.get('mac')
                     
 
     def start_readings(self, role):
         self.consumer[role] = asyncio.create_task(self.receive(role))
         self.producer[role] = asyncio.create_task(self.photometer[role].readings())
+
+
+    async def save_samples(self, role):
+        log = logging.getLogger(label(role))
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        async with self.Session() as session:
+            session.begin()
+            try:
+                q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
+                dbphot = (await session.scalars(q)).one()
+                _ = await dbphot.awaitable_attrs.samples
+                while len(self.ring[role]) > 0:
+                    s = self.ring[role].pop()
+                    dbphot.samples.append(
+                        Samples(
+                            tstamp = s['tstamp'],
+                            session = 0,
+                            seq = s['seq'],
+                            mag = s['mag'],
+                            freq = s['freq'],
+                            temp_box = s['tamb'],
+                        )
+                    )
+                session.add(dbphot)
+                await session.commit()
+            except Exception as e:
+                log.warn("An error ocurred")
+                log.error(e)
+                await session.rollback()
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
 
 
     async def receive(self, role):
@@ -166,6 +197,7 @@ class Controller:
         median, mean, stdev = self.ring[role].statistics()
         line = f"For \u03BB = {self._wavelength} nm => median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz"
         self.view.append_log(role, line)
+        await self.save_samples(role)
        
 
     # ----------------------
