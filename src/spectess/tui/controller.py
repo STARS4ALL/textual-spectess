@@ -131,17 +131,20 @@ class Controller:
             async with self.Session() as session:
                 session.begin()
                 try:
-                    session.add(
-                        DbPhotometer(
-                            name= info.get('name'), 
-                            mac = info.get('mac'),
-                            sensor = info.get('sensor'),
-                            model = info.get('model'),
-                            firmware = info.get('firmware'),
-                            zero_point = info.get('zp'),
-                            freq_offset = info.get('freq_offset'),
+                    q = select(DbPhotometer).where(DbPhotometer.mac == info.get('mac'))
+                    dbphot = (await session.scalars(q)).one_or_none()
+                    if not dbphot:
+                        session.add(
+                            DbPhotometer(
+                                name= info.get('name'), 
+                                mac = info.get('mac'),
+                                sensor = info.get('sensor'),
+                                model = info.get('model'),
+                                firmware = info.get('firmware'),
+                                zero_point = info.get('zp'),
+                                freq_offset = info.get('freq_offset'),
+                            )
                         )
-                    )
                     await session.commit()
                 except Exception as e:
                     log.warn("Ignoring already saved photometer entry")
@@ -164,7 +167,7 @@ class Controller:
             try:
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
                 dbphot = (await session.scalars(q)).one()
-                _ = await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
+                await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
                 while len(self.ring[role]) > 0:
                     s = self.ring[role].pop()
                     dbphot.samples.append(
