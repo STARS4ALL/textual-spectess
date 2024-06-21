@@ -29,6 +29,7 @@ from ..photometer import REF, TEST, label
 from ..photometer.tessw import Photometer
 from ..ring import RingBuffer 
 from ..dbase.model import Config, Samples, Photometer as DbPhotometer
+from ..utils.misc import measurements_session_id
 
 # ----------------
 # Module constants
@@ -61,9 +62,10 @@ class Controller:
         self.photometer[TEST] = Photometer(role=TEST, old_payload=False)
         self.engine = engine
         self.session_factory = session_factory
-        self._samples = 0
+        self._nsamples = 0
         self._wavelength = 0
         self._save = False
+        self._meas_session = measurements_session_id()
        
 
     # ----------------------------------------
@@ -77,12 +79,12 @@ class Controller:
         self.view.exit(return_code=2)
 
     @property
-    def samples(self):
-        return str(self._samples)
+    def nsamples(self):
+        return str(self._nsamples)
 
-    @samples.setter
-    def samples(self, value):
-        self._samples = int(value)
+    @nsamples.setter
+    def nsamples(self, value):
+        self._nsamples = int(value)
 
     @property
     def wavelength(self):
@@ -106,7 +108,7 @@ class Controller:
         log.info("loading configuration data")
         async with self.session_factory() as session:
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'samples')
-            self._samples = int((await session.scalars(q)).one())
+            self._nsamples = int((await session.scalars(q)).one())
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'wavelength')
             self._wavelength = int((await session.scalars(q)).one())
     
@@ -152,7 +154,7 @@ class Controller:
 
     def start_readings(self, role):
         self.photometer[role].clear()
-        self.ring[role] = RingBuffer(capacity=self._samples)
+        self.ring[role] = RingBuffer(capacity=self._nsamples)
         self.consumer[role] = asyncio.create_task(self.receive(role))
         self.producer[role] = asyncio.create_task(self.photometer[role].readings())
 
@@ -191,7 +193,7 @@ class Controller:
     async def receive(self, role):
         '''Receiver consumer coroutine'''
         log = logging.getLogger(label(role))
-        while len(self.ring[role]) < self._samples:
+        while len(self.ring[role]) < self._nsamples:
             msg = await self.photometer[role].queue.get()
             self.ring[role].append(msg)
             line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{msg.get('seq')}] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"

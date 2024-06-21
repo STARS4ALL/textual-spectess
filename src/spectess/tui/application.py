@@ -105,7 +105,7 @@ class MyTextualApp(App[str]):
         self.switch_w[TEST].border_title = 'OFF / ON'
         self.metadata_w[TEST] = self.query_one("#tst_metadata")
         self.nsamples_w[TEST] = self.query_one("#nsamples")
-        self.nsamples_w[TEST].value = self.controller.samples
+        self.nsamples_w[TEST].value = self.controller.nsamples
         self.wavelenth_w = self.query_one("#wavelength")
         self.wavelenth_w.value = self.controller.wavelength
         self.save_w = self.query_one("#save")
