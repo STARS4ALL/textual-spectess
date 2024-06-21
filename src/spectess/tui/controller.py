@@ -18,7 +18,7 @@ import asyncio
 # Third party imports
 # -------------------
 
-from sqlalchemy import select, inspect
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 #--------------
@@ -64,35 +64,20 @@ class Controller:
         self.session_factory = session_factory
         self._nsamples = 0
         self._wavelength = 0
+        self._wave_incr = 0
         self._save = False
         self._meas_session = measurements_session_id()
        
 
-    # ----------------------------------------
+    # ========================================
     # Public API to be used by the Textual TUI
-    # ----------------------------------------
+    # ========================================
 
     def set_view(self, view):
         self.view = view
 
     def quit(self):
         self.view.exit(return_code=2)
-
-    @property
-    def nsamples(self):
-        return str(self._nsamples)
-
-    @nsamples.setter
-    def nsamples(self, value):
-        self._nsamples = int(value)
-
-    @property
-    def wavelength(self):
-        return str(self._wavelength)
-
-    @wavelength.setter
-    def wavelength(self, value):
-        self._wavelength = int(value)
 
     @property
     def save(self):
@@ -103,17 +88,36 @@ class Controller:
         log.info("setting save to %s", value)
         self._save = bool(value)
 
-    async def load(self):
-        '''Load configuration data from the database'''
-        log.info("loading configuration data")
-        async with self.session_factory() as session:
-            q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'nsamples')
-            self._nsamples = int((await session.scalars(q)).one())
-            q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'wavelength')
-            self._wavelength = int((await session.scalars(q)).one())
-            q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'wave_incr')
-            self._wave_incr = int((await session.scalars(q)).one())
-    
+    # ---------------------------
+    # Database Config section API
+    # ---------------------------
+
+    async def set_nsamples(self, value):
+        self._nsamples = int(value)
+        await self._set_property('calibration', 'nsamples', value)
+
+    async def get_nsamples(self):
+        value = await self._get_property('calibration', 'nsamples')
+        self._nsamples = int(value)
+        return value
+
+    async def set_wavelength(self, value):
+        self._wavelength = int(value)
+        await self._set_property('calibration', 'wavelength', value)
+
+    async def get_wavelength(self):
+        value = await self._get_property('calibration', 'wavelength')
+        self._wavelength = int(value)
+        return value
+
+    async def set_wave_incr(self, value):
+        self._wave_incr = int(value)
+        await self._set_property('calibration', 'wave_incr', value)
+
+    async def get_wave_incr(self):
+        value = await self._get_property('calibration', 'wave_incr')
+        self._wave_incr = int(value)
+        return value
         
     async def get_info(self, role):
         '''Get Photometer Info'''
@@ -208,8 +212,22 @@ class Controller:
         self.view.set_wavelength(self._wavelength)
        
 
-    # ----------------------
+    # ======================
     # Private helper methods
-    # ----------------------
+    # ======================
         
-       
+    async def _get_property(self, section, property):
+        async with self.engine.begin() as conn:
+            result = await conn.execute(text("SELECT value FROM config_t WHERE section = :section AND property = :property"), 
+                {"section": section, "property": property}
+            )
+            result = result.scalar_one()
+        return result
+
+
+    async def _set_property(self, section, property, value):
+        async with self.engine.begin() as conn:
+            await conn.execute(text("UPDATE config_t SET value = :value WHERE section = :section AND property = :property"), 
+                {"section": section, "property": property , "value": value}
+            )
+            await conn.commit()

@@ -91,7 +91,6 @@ class MyTextualApp(App[str]):
         
 
     async def on_mount(self) -> None:   
-        await self.controller.load()
         for ident in ("#tst_metadata",):
             table = self.query_one(ident)
             table.add_columns(*("Property", "Value"))
@@ -108,10 +107,10 @@ class MyTextualApp(App[str]):
         
         self.nsamples_w[TEST] = self.query_one("#nsamples")
         self.nsamples_w[TEST].border_title = "Number of samples"
-        self.nsamples_w[TEST].value = self.controller.nsamples
+        self.nsamples_w[TEST].value = await self.controller.get_nsamples()
         
         self.wavelenth_w = self.query_one("#wavelength")
-        self.wavelenth_w.value = self.controller.wavelength
+        self.wavelenth_w.value = await self.controller.get_wavelength()
         self.wavelenth_w.border_title = "Wavelength [nm]"
         
         self.save_w = self.query_one("#save")
@@ -168,3 +167,11 @@ class MyTextualApp(App[str]):
     @on(Button.Pressed, "#start_button")
     def start_pressed(self, event: Button.Pressed) -> None:
         self.controller.start_readings(TEST)
+
+    @on(Input.Submitted, "#nsamples")
+    def nsamples(self, event: Input.Submitted) -> None:
+        self.run_worker(self.controller.set_nsamples(event.control.value), exclusive=True)
+
+    @on(Input.Submitted, "#wavelength")
+    def wavelength(self, event: Input.Submitted) -> None:
+        self.run_worker(self.controller.set_wavelength(event.control.value), exclusive=True)
