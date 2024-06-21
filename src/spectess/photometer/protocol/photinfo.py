@@ -18,10 +18,8 @@ import logging
 # -------------------
 
 import aiohttp
-import decouple
 
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
 
 #--------------
 # local imports
@@ -152,12 +150,12 @@ class HTMLInfo:
 
 class DBaseInfo:
 
-    def __init__(self, parent):
+    def __init__(self, parent, engine):
         self.parent = parent
         self.log = parent.log
         self.log.info("Using %s Info", self.__class__.__name__)
         url = decouple.config('DATABASE_URL')
-        self.engine = create_async_engine(url)
+        self.engine = engine
 
     # ----------------------------
     # Photometer Control interface

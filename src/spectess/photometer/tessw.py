@@ -23,12 +23,13 @@ import decouple
 # local imports
 # -------------
 
-from spectess.photometer import label, REF, TEST
+from ..photometer import label, REF, TEST
+from .protocol.transport import UDPTransport, TCPTransport, SerialTransport
+from .protocol.payload   import JSONPayload, OldPayload
+from .protocol.photinfo  import HTMLInfo, DBaseInfo
 
-from spectess.photometer.protocol.transport import UDPTransport, TCPTransport, SerialTransport
-from spectess.photometer.protocol.payload   import JSONPayload, OldPayload
-from spectess.photometer.protocol.photinfo  import HTMLInfo, DBaseInfo
-from spectess.utils.misc import chop
+from ..utils.misc import chop
+from ..dbase import engine
 
 # ----------------
 # Module constants
@@ -70,7 +71,7 @@ class Photometer:
         transport, name, number = chop(device_url,sep=':')
         number = int(number) if number else 80
         if transport == 'serial' and role == REF:
-            self.info = DBaseInfo(self)
+            self.info = DBaseInfo(self, engine)
         else:
             self.info = HTMLInfo(self, addr=name)
         if transport == 'udp':
@@ -106,7 +107,7 @@ class Photometer:
 
     def clear(self):
         self.decoder.clear()
-    
+
     async def readings(self):
         return await self.transport.readings()
 
