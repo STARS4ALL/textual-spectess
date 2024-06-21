@@ -28,8 +28,6 @@ from sqlalchemy.exc import IntegrityError
 from ..photometer import REF, TEST, label
 from ..photometer.tessw import Photometer
 from ..ring import RingBuffer 
-
-from ..dbase import engine, Session
 from ..dbase.model import Config, Samples, Photometer as DbPhotometer
 
 # ----------------
@@ -54,7 +52,7 @@ log = logging.getLogger(__name__)
 
 class Controller:
 
-    def __init__(self):
+    def __init__(self, engine, session_factory):
         self.photometer = [None, None]
         self.producer = [None, None]
         self.consumer = [None, None]
@@ -62,7 +60,7 @@ class Controller:
         self.quit_event =  None
         self.photometer[TEST] = Photometer(role=TEST, old_payload=False)
         self.engine = engine
-        self.Session = Session
+        self.session_factory = session_factory
         self._samples = 0
         self._wavelength = 0
         self._save = False
@@ -106,7 +104,7 @@ class Controller:
     async def load(self):
         '''Load configuration data from the database'''
         log.info("loading configuration data")
-        async with self.Session() as session:
+        async with self.session_factory() as session:
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'samples')
             self._samples = int((await session.scalars(q)).one())
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'wavelength')
@@ -128,7 +126,7 @@ class Controller:
         else:
             self.view.clear_metadata_table(role)
             self.view.update_metadata_table(role, info)
-            async with self.Session() as session:
+            async with self.session_factory() as session:
                 session.begin()
                 try:
                     q = select(DbPhotometer).where(DbPhotometer.mac == info.get('mac'))
@@ -162,7 +160,7 @@ class Controller:
     async def save_samples(self, role):
         log = logging.getLogger(label(role))
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-        async with self.Session() as session:
+        async with self.session_factory() as session:
             session.begin()
             try:
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)

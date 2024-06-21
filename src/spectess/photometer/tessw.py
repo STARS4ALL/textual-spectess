@@ -18,16 +18,15 @@ import asyncio
 
 import decouple
 
-
 #--------------
 # local imports
 # -------------
 
-from ..photometer import label, REF, TEST
 from .protocol.transport import UDPTransport, TCPTransport, SerialTransport
 from .protocol.payload   import JSONPayload, OldPayload
 from .protocol.photinfo  import HTMLInfo, DBaseInfo
 
+from ..photometer import label, REF, TEST
 from ..utils.misc import chop
 from ..dbase import engine
 
@@ -35,29 +34,21 @@ from ..dbase import engine
 # Module constants
 # ----------------
 
-
 # -----------------------
 # Module global variables
 # -----------------------
-
-log = logging.getLogger(__name__)
 
 # ----------------
 # Module functions
 # ----------------
 
-
-
 # ----------
 # Exceptions
 # ----------
 
-
 # -------
 # Classes
 # -------
-
-
 
 class Photometer:
 
@@ -98,8 +89,6 @@ class Photometer:
             except Exception as e:
                 self.log.error("%s", e)
                 self.log.error("receiver lost, discarded message")
-           
-
 
     # ----------
     # Public API

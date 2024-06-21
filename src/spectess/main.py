@@ -20,6 +20,7 @@ import logging
 # -------------
 
 from . import __version__
+from .dbase import engine, Session
 from .utils.argsparse import args_parser
 from .utils.logging import configure
 from .tui.application import MyTextualApp
@@ -30,6 +31,7 @@ from .tui.controller import Controller
 # ----------------
 
 DESCRIPTION = "TESS Spectral Response Tool"
+
 # -----------------------
 # Module global variables
 # -----------------------
@@ -51,7 +53,7 @@ def main():
     args = parser.parse_args(sys.argv[1:])
     configure(args)
     try:
-        controller = Controller()
+        controller = Controller(engine, Session)
         tui = MyTextualApp(controller, DESCRIPTION)
         controller.set_view(tui)
         tui.run()
