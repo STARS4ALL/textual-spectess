@@ -19,16 +19,15 @@ from datetime import datetime
 # SQLAlchemy imports
 # -------------------
 
-from sqlalchemy import String, ForeignKey, PrimaryKeyConstraint
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 
 #--------------
 # local imports
 # -------------
 
-from . import url, engine, metadata as metadata_obj, Session
+from . import Model
 
 # ----------------
 # Module constants
@@ -38,15 +37,12 @@ from . import url, engine, metadata as metadata_obj, Session
 # Module global variables
 # -----------------------
 
-# get the root logger
+# get the module logger
 log = logging.getLogger(__name__)
 
-# ---------------------
-# Data Model as classes
-# ---------------------
-
-class Model(AsyncAttrs, DeclarativeBase):
-    metadata = metadata_obj
+# ---------------------------------
+# Data Model, declarative ORM style
+# ---------------------------------
 
 class Config(Model):
 
@@ -56,14 +52,8 @@ class Config(Model):
     prop:      Mapped[str] = mapped_column('property', String(255), primary_key=True)
     value:     Mapped[str] = mapped_column(String(255))
 
-    __table_args__ = (
-        PrimaryKeyConstraint(
-            section,
-            prop),
-        {})
-
     def __repr__(self) -> str:
-        return f"TESS(id={self.id!r}, nname={self.name!r}, mac={self.mac!r})"
+        return f"Config(section={self.section!r}, prop={self.prop!r}, value={self.value!r})"
 
 
 class Photometer(Model):

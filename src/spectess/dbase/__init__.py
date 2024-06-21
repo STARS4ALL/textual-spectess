@@ -15,7 +15,8 @@
 import decouple
 
 from sqlalchemy import MetaData
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncAttrs
 
 url = decouple.config('DATABASE_URL')
  
@@ -31,5 +32,9 @@ metadata = MetaData(
         'pk': "pk_%(table_name)s",
     }
 )
+
+class Model(AsyncAttrs, DeclarativeBase):
+    metadata = metadata
+
 
 Session = async_sessionmaker(engine, expire_on_commit=False)
