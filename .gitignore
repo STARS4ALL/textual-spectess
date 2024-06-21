@@ -161,5 +161,5 @@ cython_debug/
 
 # My own stuff
 *.db
-src/spectess/_version.py
+_version.py
 test*.py
