@@ -79,8 +79,6 @@ class MyTextualApp(App[str]):
             with Vertical(id="complex"):
                 yield Switch(id="tst_phot")
                 yield Label("Photometer On/Off", classes="mylabels")
-                yield Label("Number of Samples", classes="mylabels")
-                yield Label("Wavelength [nm]", classes="mylabels", )
                 yield Input(placeholder="Number of samples", id="nsamples", type="integer")
                 yield Input(placeholder="Wavelength [nm]", id="wavelength", type="integer")
                 yield RadioButton("Save samples", id="save")
@@ -99,15 +97,23 @@ class MyTextualApp(App[str]):
             table.add_columns(*("Property", "Value"))
             table.fixed_columns = 2
             table.show_cursor = False
+        
         self.log_w[TEST] = self.query_one("#tst_log")
         self.log_w[TEST].border_title = f"{label(TEST)} LOG"
+        
         self.switch_w[TEST] = self.query_one("#tst_phot")
         self.switch_w[TEST].border_title = 'OFF / ON'
+        
         self.metadata_w[TEST] = self.query_one("#tst_metadata")
+        
         self.nsamples_w[TEST] = self.query_one("#nsamples")
+        self.nsamples_w[TEST].border_title = "Number of samples"
         self.nsamples_w[TEST].value = self.controller.nsamples
+        
         self.wavelenth_w = self.query_one("#wavelength")
         self.wavelenth_w.value = self.controller.wavelength
+        self.wavelenth_w.border_title = "Wavelength [nm]"
+        
         self.save_w = self.query_one("#save")
         self.save_w.value = self.controller.save
        

@@ -16,6 +16,9 @@ Footer {
 	grid-size: 2
 }
 
+Input {
+	border: solid yellow;
+}
 
 .mylabels
 {
@@ -28,7 +31,7 @@ Footer {
 }
 
 .box {
-    border: heavy yellow;
+    border: double yellow;
     height: 1fr;
 }
 
@@ -36,4 +39,9 @@ Switch {
     height: auto;
     width: 14;
     align: right bottom;
+    border: solid yellow;
+}
+
+ProgressBar {
+	border: solid yellow;
 }
