@@ -109,6 +109,7 @@ class MyTextualApp(App[str]):
         self.wavelenth_w = self.query_one("#wavelength")
         self.wavelenth_w.value = self.controller.wavelength
         self.save_w = self.query_one("#save")
+        self.save_w.value = self.controller.save
        
 
     # -----------------------------

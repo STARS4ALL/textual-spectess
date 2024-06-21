@@ -165,30 +165,25 @@ class Controller:
         log = logging.getLogger(label(role))
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         async with self.session_factory() as session:
-            session.begin()
-            try:
+            async with session.begin():
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
                 dbphot = (await session.scalars(q)).one()
                 await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
                 while len(self.ring[role]) > 0:
                     s = self.ring[role].pop()
-                    dbphot.samples.append(
-                        Samples(
-                            tstamp = s['tstamp'],
-                            session = self._meas_session,
-                            seq = s['seq'],
-                            mag = s['mag'],
-                            freq = s['freq'],
-                            temp_box = s['tamb'],
-                            wave = self._wavelength,
+                    if self._save:
+                        dbphot.samples.append(
+                            Samples(
+                                tstamp = s['tstamp'],
+                                session = self._meas_session,
+                                seq = s['seq'],
+                                mag = s['mag'],
+                                freq = s['freq'],
+                                temp_box = s['tamb'],
+                                wave = self._wavelength,
+                            )
                         )
-                    )
                 session.add(dbphot)
-                await session.commit()
-            except Exception as e:
-                log.warn("An error ocurred")
-                log.error(e)
-                await session.rollback()
         logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
 
 
