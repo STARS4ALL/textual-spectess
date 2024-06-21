@@ -127,6 +127,9 @@ class MyTextualApp(App[str]):
     def update_metadata_table(self, role, metadata):
         self.metadata_w[role].add_rows(metadata.items())
 
+    def set_wavelength(self, value):
+        self.wavelenth_w.value = str(value)
+
     # ----------------------
     # Textual event handlers
     # ----------------------

@@ -107,10 +107,12 @@ class Controller:
         '''Load configuration data from the database'''
         log.info("loading configuration data")
         async with self.session_factory() as session:
-            q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'samples')
+            q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'nsamples')
             self._nsamples = int((await session.scalars(q)).one())
             q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'wavelength')
             self._wavelength = int((await session.scalars(q)).one())
+            q = select(Config.value).where(Config.section == 'calibration', Config.prop == 'wave_incr')
+            self._wave_incr = int((await session.scalars(q)).one())
     
         
     async def get_info(self, role):
@@ -173,7 +175,7 @@ class Controller:
                     dbphot.samples.append(
                         Samples(
                             tstamp = s['tstamp'],
-                            session = 0,
+                            session = self._meas_session,
                             seq = s['seq'],
                             mag = s['mag'],
                             freq = s['freq'],
@@ -196,13 +198,15 @@ class Controller:
         while len(self.ring[role]) < self._nsamples:
             msg = await self.photometer[role].queue.get()
             self.ring[role].append(msg)
-            line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{msg.get('seq')}] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
+            line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{msg.get('seq')}] [{self._wavelength} nm] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
             self.view.append_log(role, line)
         self.producer[role].cancel()
         median, mean, stdev = self.ring[role].statistics()
         line = f"median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
         self.view.append_log(role, line)
         await self.save_samples(role)
+        self._wavelength += self._wave_incr
+        self.view.set_wavelength(self._wavelength)
        
 
     # ----------------------
