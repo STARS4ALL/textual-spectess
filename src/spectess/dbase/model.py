@@ -52,8 +52,8 @@ class Config(Model):
 
     __tablename__ = "config_t"
 
-    section:   Mapped[str] = mapped_column(String(32))
-    prop:      Mapped[str] = mapped_column('property', String(255))
+    section:   Mapped[str] = mapped_column(String(32), primary_key=True)
+    prop:      Mapped[str] = mapped_column('property', String(255), primary_key=True)
     value:     Mapped[str] = mapped_column(String(255))
 
     __table_args__ = (
