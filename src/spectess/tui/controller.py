@@ -164,14 +164,16 @@ class Controller:
     async def save_samples(self, role):
         log = logging.getLogger(label(role))
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-        async with self.session_factory() as session:
-            async with session.begin():
-                q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
-                dbphot = (await session.scalars(q)).one()
-                await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
-                while len(self.ring[role]) > 0:
-                    s = self.ring[role].pop()
-                    if self._save:
+        if not self._save:
+            self.view.append_log(role, "WARNING: not saving samples")
+        else:
+            async with self.session_factory() as session:
+                async with session.begin():
+                    q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
+                    dbphot = (await session.scalars(q)).one()
+                    await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
+                    while len(self.ring[role]) > 0:
+                        s = self.ring[role].pop()
                         dbphot.samples.append(
                             Samples(
                                 tstamp = s['tstamp'],
@@ -183,18 +185,20 @@ class Controller:
                                 wave = self._wavelength,
                             )
                         )
-                session.add(dbphot)
+                    session.add(dbphot)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
 
 
     async def receive(self, role):
         '''Receiver consumer coroutine'''
         log = logging.getLogger(label(role))
+        self.view.reset_progress(role)
         while len(self.ring[role]) < self._nsamples:
             msg = await self.photometer[role].queue.get()
             self.ring[role].append(msg)
             line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{msg.get('seq')}] [{self._wavelength} nm] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
             self.view.append_log(role, line)
+            self.view.update_progress(role, 1)
         self.producer[role].cancel()
         median, mean, stdev = self.ring[role].statistics()
         line = f"median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"

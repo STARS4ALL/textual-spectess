@@ -42,6 +42,3 @@ Switch {
     border: solid yellow;
 }
 
-ProgressBar {
-	border: solid yellow;
-}

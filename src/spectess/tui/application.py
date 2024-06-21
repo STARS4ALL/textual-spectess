@@ -116,6 +116,10 @@ class MyTextualApp(App[str]):
         
         self.save_w = self.query_one("#save")
         self.save_w.value = self.controller.save
+
+        self.progress_w[TEST] = self.query_one("#tst_ring")
+        self.progress_w[TEST].total = int(self.controller.nsamples)
+        self.progress_w[TEST].border_title = "Progress"
        
 
     # -----------------------------
@@ -133,6 +137,12 @@ class MyTextualApp(App[str]):
 
     def update_metadata_table(self, role, metadata):
         self.metadata_w[role].add_rows(metadata.items())
+
+    def update_progress(self, role, amount):
+        self.progress_w[role].advance(amount)
+
+    def reset_progress(self, role):
+        self.progress_w[role].progress = 0
 
     def set_wavelength(self, value):
         self.wavelenth_w.value = str(value)
