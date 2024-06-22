@@ -95,6 +95,7 @@ class Controller:
     # ---------------------------
 
     async def set_nsamples(self, value):
+        log.info("Setting nsamples to %s", value)
         self._nsamples = int(value)
         await self._set_property('calibration', 'nsamples', value)
 
@@ -104,6 +105,7 @@ class Controller:
         return value
 
     async def set_wavelength(self, value):
+        log.info("Setting starting wavelength to %s", value)
         self._wavelength = int(value)
         await self._set_property('calibration', 'wavelength', value)
 
@@ -113,6 +115,7 @@ class Controller:
         return value
 
     async def set_wave_incr(self, value):
+        log.info("Setting wavelength increment to %s", value)
         self._wave_incr = int(value)
         await self._set_property('calibration', 'wave_incr', value)
 
