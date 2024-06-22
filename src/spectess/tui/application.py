@@ -9,8 +9,6 @@
 # -------------------
 
 import os
-import sys
-import argparse
 import logging
 
 # ---------------
@@ -20,7 +18,7 @@ import logging
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Sparkline, Rule
-from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button
+from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button, Placeholder
 
 from textual.containers import Horizontal, Vertical
 
@@ -88,14 +86,35 @@ class MyTextualApp(App[str]):
             yield DataTable(id="tst_metadata")
         yield Log(id="tst_log", classes="box")
         yield Footer()
-        
+
+    def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
+        with TabbedContent():
+            with TabPane("Configure", id="config"):
+                yield DataTable(id="config_table")
+            with TabPane("Capture", id="capture"):
+                yield DataTable(id="tst_metadata")
+                yield Switch(id="tst_phot")
+                yield RadioButton("Save samples", id="save")
+                yield Label("Statistics", classes="mylabels")
+                yield Button("Capture", id="start_button")
+                yield ProgressBar(id="tst_ring", total=100, show_eta=False)
+                yield Log(id="tst_log", classes="box")
+            with TabPane("Export", id="export"):
+                yield Placeholder("TO BE DEFINED", id="p1")
+        yield Footer()
+    
 
     async def on_mount(self) -> None:   
         for ident in ("#tst_metadata",):
             table = self.query_one(ident)
             table.add_columns(*("Property", "Value"))
-            table.fixed_columns = 2
             table.show_cursor = False
+            table.fixed_columns = 2
+
+        self.configtable_w = self.query_one("#config_table")
+        self.configtable_w.add_columns(*("Section", "Property", "Value"))
+        self.configtable_w.fixed_columns = 3
         
         self.log_w[TEST] = self.query_one("#tst_log")
         self.log_w[TEST].border_title = f"{label(TEST)} LOG"
@@ -105,19 +124,19 @@ class MyTextualApp(App[str]):
         
         self.metadata_w[TEST] = self.query_one("#tst_metadata")
         
-        self.nsamples_w[TEST] = self.query_one("#nsamples")
-        self.nsamples_w[TEST].border_title = "Number of samples"
-        self.nsamples_w[TEST].value = await self.controller.get_nsamples()
+        #self.nsamples_w[TEST] = self.query_one("#nsamples")
+        #self.nsamples_w[TEST].border_title = "Number of samples"
+        #self.nsamples_w[TEST].value = await self.controller.get_nsamples()
         
-        self.wavelenth_w = self.query_one("#wavelength")
-        self.wavelenth_w.value = await self.controller.get_wavelength()
-        self.wavelenth_w.border_title = "Wavelength [nm]"
+        #self.wavelenth_w = self.query_one("#wavelength")
+        #self.wavelenth_w.value = await self.controller.get_wavelength()
+        #self.wavelenth_w.border_title = "Wavelength [nm]"
         
         self.save_w = self.query_one("#save")
         self.save_w.value = self.controller.save
 
         self.progress_w[TEST] = self.query_one("#tst_ring")
-        self.progress_w[TEST].total = int(self.controller.nsamples)
+        self.progress_w[TEST].total = int(await self.controller.get_nsamples())
         self.progress_w[TEST].border_title = "Progress"
        
 
