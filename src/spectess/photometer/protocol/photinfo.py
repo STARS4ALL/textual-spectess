@@ -12,6 +12,7 @@ import re
 import sys
 import datetime
 import logging
+import asyncio
 
 # -----------------
 # Third Party imports
@@ -118,7 +119,7 @@ class HTMLInfo:
         return result
 
 
-    async def save_zero_point(self, zero_point):
+    async def save_zero_point(self, zero_point, timeout=4):
         '''
         Writes Zero Point to the device. 
         '''
@@ -129,7 +130,7 @@ class HTMLInfo:
         params = [('cons', '{0:0.2f}'.format(zero_point))]
         # Paradoxically, the photometer uses an HTTP GET method tow wrte a ZP ....
         async with httpx.AsyncClient() as client:
-            response = await client.get(url, params=params, timeout=4)
+            response = await client.get(url, params=params, timeout=timeout)
             text = response.text
         matchobj = self.GET_INFO['flash'].search(text)
         if not matchobj:
@@ -161,7 +162,7 @@ class DBaseInfo:
     # Photometer Control interface
     # ----------------------------
 
-    async def save_zero_point(self, zero_point):
+    async def save_zero_point(self, zero_point, timeout=4):
         '''
         Writes Zero Point to the device. 
         '''
@@ -190,6 +191,138 @@ class DBaseInfo:
         return result
 
 
-# -------------------
-# Auxiliary functions
-# -------------------
+
+class CLInfo:
+
+    """
+    Get the photometer by sending commands through a line oriented interface (i.e a serial port).
+    Set the new ZP by sending commands through a line oriented interface (i.e a serial port)
+    """
+
+    SOLICITED_RESPONSES = [
+        {
+            'name'    : 'firmware',
+            'pattern' : r'^Compiled (.+)',       
+        },
+        {
+            'name'    : 'mac',
+            'pattern' : r'^MAC: ([0-9A-Za-z]{12})',       
+        },
+        {
+            'name'    : 'zp',
+            'pattern' : r'^Actual CI: (\d{1,2}.\d{1,2})',       
+        },
+        {
+            'name'    : 'written_zp',
+            'pattern' : r'^New CI: (\d{1,2}.\d{1,2})',       
+        },
+    ]
+
+    SOLICITED_PATTERNS = [ re.compile(sr['pattern']) for sr in SOLICITED_RESPONSES ]
+
+
+    def __init__(self, parent):
+        self.parent = parent
+        self.log = parent.log
+        self.label = self.parent.label
+        self.log.info("Using %s Info", self.__class__.__name__)
+
+        self.read_deferred = None
+        self.write_deferred = None
+     
+
+
+    # ---------------------
+    # IPhotometerControl interface
+    # ---------------------
+
+    async def save_zero_point(self, zero_point, timeout=4):
+        '''
+        Writes Zero Point to the device. 
+        Returns a Deferred
+        '''
+        line = 'CI{0:04d}'.format(int(round(zero_point*100,2)))
+        self.log.info("==> [{l:02d}] {line}", l=len(line), line=line)
+        await asyncio.sleep(1) 
+        raise NotImplementedError("save_zero_point needs to be implemented")
+        
+        # We need to implement serial por writting in the transport object !!!!!
+        self.parent.sendLine(line.encode('ascii'))
+        self.write_deferred = defer.Deferred()
+        self.write_deferred.addTimeout(timeout, reactor)
+        self.write_response = {}
+        return self.write_deferred
+
+    async def get_info(self, timeout):
+        '''
+        Reads Info from the device.
+        '''
+        line = '?'
+        self.log.info("==> [{l:02d}] {line}", label=self.label, l=len(line), line=line)
+        await asyncio.sleep(1) 
+        raise NotImplementedError("save_zero_point needs to be implemented")
+
+        self.parent.sendLine(line.encode('ascii'))
+        self.read_deferred = defer.Deferred()
+        self.read_deferred.addTimeout(timeout, reactor)
+        self.cnt = 0
+        self.read_response = {}
+        return self.read_deferred
+
+
+    def on_photometer_info_response(self, line, tstamp):
+        '''
+        Handle solicted responses from photometer.
+        Returns True if handled, False otherwise
+        '''
+        sr, matchobj = self._match_solicited(line)
+        if not sr:
+            return False
+        self.read_response['freq_offset'] = 0 # This is hardwired until we can query this on the CLI
+        if sr['name'] == 'name':
+            self.read_response['tstamp'] = tstamp
+            self.read_response['name'] = str(matchobj.group(1))
+            self.cnt += 1
+        elif sr['name'] == 'mac':
+            self.read_response['tstamp'] = tstamp
+            self.read_response['mac'] = formatted_mac(matchobj.group(1))
+            self.cnt += 1
+        elif sr['name'] == 'firmware':
+            self.read_response['tstamp'] = tstamp
+            self.read_response['firmware'] = str(matchobj.group(1))
+            self.cnt += 1
+        elif sr['name'] == 'zp':
+            self.read_response['tstamp'] = tstamp
+            self.read_response['zp'] = float(matchobj.group(1))
+            self.cnt += 1
+        elif sr['name'] == 'written_zp':
+            self.write_response['tstamp'] = tstamp
+            self.write_response['zp'] = float(matchobj.group(1))
+        else:
+            return False
+        self._maybeTriggerCallbacks()
+        return True
+
+    # --------------
+    # Helper methods
+    # --------------
+
+    def _maybeTriggerCallbacks(self):
+        # trigger pending callbacks
+        if self.read_deferred and self.cnt == 4: 
+            self.read_deferred.callback(self.read_response)
+            self.read_deferred = None
+            self.cnt = 0
+
+        if self.write_deferred and 'zp' in self.write_response: 
+            self.write_deferred.callback(self.write_response)
+            self.write_deferred = None
+
+    def _match_solicited(self, line):
+        '''Returns matched command descriptor or None'''
+        for i, regexp in enumerate(self.SOLICITED_PATTERNS, 0):
+            matchobj = regexp.search(line)
+            if matchobj:
+                self.log.debug("matched {pattern}", pattern=self.SOLICITED_RESPONSES[i]['name'])
+                return self.SOLICITED_RESPONSES[i], matchobj
+        return None, None

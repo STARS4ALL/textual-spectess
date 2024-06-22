@@ -25,8 +25,9 @@ from sqlalchemy.exc import IntegrityError
 # local imports
 # -------------
 
-from ..photometer import REF, TEST, label
-from ..photometer.tessw import Photometer
+from ..photometer import TESSW, REF, TEST, label
+from ..photometer.builder import PhotometerBuilder
+
 from ..ring import RingBuffer 
 from ..dbase.model import Config, Samples, Photometer as DbPhotometer
 from ..utils.misc import measurements_session_id
@@ -59,7 +60,8 @@ class Controller:
         self.consumer = [None, None]
         self.ring = [None, None]
         self.quit_event =  None
-        self.photometer[TEST] = Photometer(role=TEST, old_payload=False)
+        builder = PhotometerBuilder()
+        self.photometer[TEST] = builder.build(TESSW, TEST)
         self.engine = engine
         self.session_class = session_class
         self._nsamples = 0
