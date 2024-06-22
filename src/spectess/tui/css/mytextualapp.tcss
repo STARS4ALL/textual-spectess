@@ -42,3 +42,12 @@ Switch {
     border: solid yellow;
 }
 
+#config {
+	layout: grid;
+    grid-size: 2 2;
+}
+
+#capyure_controls {
+	layout: grid;
+    grid-size: 2 2;
+}

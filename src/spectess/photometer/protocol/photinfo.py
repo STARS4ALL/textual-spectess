@@ -172,10 +172,14 @@ class DBaseInfo:
         prop = 'zp'
         zero_point = str(zero_point)
         async with self.engine.begin() as conn:
-            await conn.execute(text("UPDATE config_t SET value = :value WHERE section = :section AND property = :property"), 
-                {"section": section, "property": "zp" , "value": zero_point}
-            )
-            await conn.commit()
+            try:
+                await conn.execute(text("UPDATE config_t SET value = :value WHERE section = :section AND property = :property"), 
+                    {"section": section, "property": "zp" , "value": zero_point}
+                )
+            except:
+                await conn.rollback()
+            else:
+                await conn.commit()
 
 
     async def get_info(self, timeout):

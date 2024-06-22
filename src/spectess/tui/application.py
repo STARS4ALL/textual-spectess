@@ -65,40 +65,24 @@ class MyTextualApp(App[str]):
         self.metadata_w = [None, None]
         self.progress_w = [None, None]
         self.graph_w = [None, None]
-        self.nsamples_w = [None, None]
-        self.save_w = None
-        self.wavelength_w = None
         self.SUB_TITLE = description
         super().__init__()
-        
-    def compose(self) -> ComposeResult:
-        yield Header(show_clock=True)
-        with Horizontal():
-            with Vertical(id="complex"):
-                yield Switch(id="tst_phot")
-                yield Label("Photometer On/Off", classes="mylabels")
-                yield Input(placeholder="Number of samples", id="nsamples", type="integer")
-                yield Input(placeholder="Wavelength [nm]", id="wavelength", type="integer")
-                yield RadioButton("Save samples", id="save")
-                yield Label("Statistics", classes="mylabels")
-                yield Button("Capture", id="start_button")
-                yield ProgressBar(id="tst_ring", total=100, show_eta=False)
-            yield DataTable(id="tst_metadata")
-        yield Log(id="tst_log", classes="box")
-        yield Footer()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with TabbedContent():
             with TabPane("Configure", id="config"):
-                yield DataTable(id="config_table")
+                yield Input(placeholder="Starting Wavelength [nm]", id="wavelength", type="integer")
+                yield Input(placeholder="Wavelength increment [nm]", id="wave_incr", type="integer")
+                yield Input(placeholder="Number of samples", id="nsamples", type="integer")
             with TabPane("Capture", id="capture"):
-                yield DataTable(id="tst_metadata")
-                yield Switch(id="tst_phot")
-                yield RadioButton("Save samples", id="save")
-                yield Label("Statistics", classes="mylabels")
-                yield Button("Capture", id="start_button")
-                yield ProgressBar(id="tst_ring", total=100, show_eta=False)
+                with Horizontal():
+                    with Vertical(id="capture_controls"):
+                        yield Switch(id="tst_phot")
+                        yield RadioButton("Save samples", id="save")
+                        yield Button("Capture", id="start_button")
+                        yield ProgressBar(id="tst_ring", total=100, show_eta=False)
+                    yield DataTable(id="tst_metadata")
                 yield Log(id="tst_log", classes="box")
             with TabPane("Export", id="export"):
                 yield Placeholder("TO BE DEFINED", id="p1")
@@ -112,9 +96,9 @@ class MyTextualApp(App[str]):
             table.show_cursor = False
             table.fixed_columns = 2
 
-        self.configtable_w = self.query_one("#config_table")
-        self.configtable_w.add_columns(*("Section", "Property", "Value"))
-        self.configtable_w.fixed_columns = 3
+        #self.configtable_w = self.query_one("#config_table")
+        #self.configtable_w.add_columns(*("Section", "Property", "Value"))
+        #self.configtable_w.fixed_columns = 3
         
         self.log_w[TEST] = self.query_one("#tst_log")
         self.log_w[TEST].border_title = f"{label(TEST)} LOG"
@@ -124,13 +108,17 @@ class MyTextualApp(App[str]):
         
         self.metadata_w[TEST] = self.query_one("#tst_metadata")
         
-        #self.nsamples_w[TEST] = self.query_one("#nsamples")
-        #self.nsamples_w[TEST].border_title = "Number of samples"
-        #self.nsamples_w[TEST].value = await self.controller.get_nsamples()
+        self.nsamples_w = self.query_one("#nsamples")
+        self.nsamples_w.border_title = "Number of samples"
+        self.nsamples_w.value = await self.controller.get_nsamples()
         
-        #self.wavelenth_w = self.query_one("#wavelength")
-        #self.wavelenth_w.value = await self.controller.get_wavelength()
-        #self.wavelenth_w.border_title = "Wavelength [nm]"
+        self.wavelenth_w = self.query_one("#wavelength")
+        self.wavelenth_w.value = await self.controller.get_wavelength()
+        self.wavelenth_w.border_title = "Starting Wavelength (nm)"
+
+        self.wave_incr_w = self.query_one("#wave_incr")
+        self.wave_incr_w.value = await self.controller.get_wave_incr()
+        self.wave_incr_w.border_title = "Wavelength Increment (nm)"
         
         self.save_w = self.query_one("#save")
         self.save_w.value = self.controller.save
@@ -194,3 +182,8 @@ class MyTextualApp(App[str]):
     @on(Input.Submitted, "#wavelength")
     def wavelength(self, event: Input.Submitted) -> None:
         self.run_worker(self.controller.set_wavelength(event.control.value), exclusive=True)
+
+    @on(Input.Submitted, "#wave_incr")
+    def wave_incr(self, event: Input.Submitted) -> None:
+        self.run_worker(self.controller.set_wave_incr(event.control.value), exclusive=True)
+
