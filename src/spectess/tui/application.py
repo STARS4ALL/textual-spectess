@@ -71,7 +71,7 @@ class MyTextualApp(App[str]):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with TabbedContent():
-            with TabPane("Configure", id="config"):
+            with TabPane("Configure", id="config_tab"):
                 yield Input(placeholder="Starting Wavelength [nm]", id="wavelength", type="integer")
                 yield Input(placeholder="Wavelength increment [nm]", id="wave_incr", type="integer")
                 yield Input(placeholder="Number of samples", id="nsamples", type="integer")

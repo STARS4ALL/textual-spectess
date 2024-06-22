@@ -7,14 +7,18 @@ Footer {
 	height: 1;
 }
 
+Switch {
+    height: auto;
+    width: 14;
+    align: right bottom;
+    border: solid yellow;
+}
+
+
 #tst_log {
 	background: darkblue;
 }
 
-#complex {
-	layout: grid;
-	grid-size: 2
-}
 
 Input {
 	border: solid yellow;
@@ -35,19 +39,13 @@ Input {
     height: 1fr;
 }
 
-Switch {
-    height: auto;
-    width: 14;
-    align: right bottom;
-    border: solid yellow;
-}
 
-#config {
+#config_tab {
 	layout: grid;
     grid-size: 2 2;
 }
 
-#capyure_controls {
+#capture_controls {
 	layout: grid;
-    grid-size: 2 2;
+    grid-size: 2;
 }
