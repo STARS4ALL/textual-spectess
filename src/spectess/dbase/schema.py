@@ -20,8 +20,7 @@ from datetime import datetime
 # SQLAlchemy imports
 # -------------------
 
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession as AsyncSessionClass
 
 #--------------
 # local imports
@@ -31,8 +30,8 @@ from .. import __version__
 from ..utils.argsparse import args_parser
 from ..utils.logging import configure
 
-from . import url, engine, metadata, Session
-from .model import Model, Photometer, Samples, Config
+from . import url, engine, Model, AsyncSession
+from .model import Photometer, Samples, Config
 
 # ----------------
 # Module constants
@@ -50,7 +49,7 @@ logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 # Auxiliary functions
 # -------------------
 
-async def populate(async_session: async_sessionmaker[AsyncSession]) -> None:
+async def populate(async_session: async_sessionmaker[AsyncSessionClass]) -> None:
     async with async_session() as session:
         async with session.begin():
             session.add(Config(section="database", prop="uuid", value=str(uuid.uuid4())))
@@ -65,7 +64,7 @@ async def schema() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Model.metadata.drop_all)
         await conn.run_sync(Model.metadata.create_all)
-        await populate(Session)
+        await populate(AsyncSession)
     await engine.dispose()
 
 

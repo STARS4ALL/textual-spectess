@@ -8,8 +8,6 @@
 # System wide imports
 # -------------------
 
-import sys
-import asyncio
 import logging
 
 from typing import Optional, List
@@ -19,7 +17,7 @@ from datetime import datetime
 # SQLAlchemy imports
 # -------------------
 
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 #--------------
@@ -67,6 +65,7 @@ class Photometer(Model):
     zero_point:     Mapped[float]
     freq_offset:    Mapped[float]
 
+
     # This is not a real column, it s meant for the ORM
     samples: Mapped[List['Samples']] = relationship(back_populates="photometer")
 
@@ -78,14 +77,19 @@ class Samples(Model):
     __tablename__ = "samples_t"
 
     id:         Mapped[int] = mapped_column(primary_key=True)
-    tess_id:    Mapped[int] = mapped_column(ForeignKey("photometer_t.id"), index=True)
+    phot_id:    Mapped[int] = mapped_column(ForeignKey("photometer_t.id"), index=True)
     tstamp:     Mapped[datetime]
+    role:       Mapped[str] = mapped_column(String(4))
     session:    Mapped[int]
     seq:        Mapped[int]
     mag:        Mapped[float]
     freq:       Mapped[float]
     temp_box:   Mapped[float]
     wave:       Mapped[int]
+
+    __table_args__ = (
+        UniqueConstraint('tstamp', 'role', name='uq_photometer_t_tstamp_role'),
+    )
 
     # This is not a real column, it s meant for the ORM
     photometer: Mapped['Photometer'] = relationship(back_populates="samples")

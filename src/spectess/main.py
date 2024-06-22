@@ -20,7 +20,7 @@ import logging
 # -------------
 
 from . import __version__
-from .dbase import engine, Session
+from .dbase import engine, AsyncSession
 from .utils.argsparse import args_parser
 from .utils.logging import configure
 from .tui.application import MyTextualApp
@@ -53,7 +53,7 @@ def main():
     args = parser.parse_args(sys.argv[1:])
     configure(args)
     try:
-        controller = Controller(engine, Session)
+        controller = Controller(engine, AsyncSession)
         tui = MyTextualApp(controller, DESCRIPTION)
         controller.set_view(tui)
         tui.run()

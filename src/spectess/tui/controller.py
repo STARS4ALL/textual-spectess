@@ -53,7 +53,7 @@ log = logging.getLogger(__name__)
 
 class Controller:
 
-    def __init__(self, engine, session_factory):
+    def __init__(self, engine, session_class):
         self.photometer = [None, None]
         self.producer = [None, None]
         self.consumer = [None, None]
@@ -61,7 +61,7 @@ class Controller:
         self.quit_event =  None
         self.photometer[TEST] = Photometer(role=TEST, old_payload=False)
         self.engine = engine
-        self.session_factory = session_factory
+        self.session_class = session_class
         self._nsamples = 0
         self._wavelength = 0
         self._wave_incr = 0
@@ -134,7 +134,7 @@ class Controller:
         else:
             self.view.clear_metadata_table(role)
             self.view.update_metadata_table(role, info)
-            async with self.session_factory() as session:
+            async with self.session_class() as session:
                 session.begin()
                 try:
                     q = select(DbPhotometer).where(DbPhotometer.mac == info.get('mac'))
@@ -171,7 +171,7 @@ class Controller:
         if not self._save:
             self.view.append_log(role, "WARNING: not saving samples")
         else:
-            async with self.session_factory() as session:
+            async with self.session_class() as session:
                 async with session.begin():
                     q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
                     dbphot = (await session.scalars(q)).one()
@@ -181,6 +181,7 @@ class Controller:
                         dbphot.samples.append(
                             Samples(
                                 tstamp = s['tstamp'],
+                                role = label(role),
                                 session = self._meas_session,
                                 seq = s['seq'],
                                 mag = s['mag'],

@@ -37,4 +37,4 @@ class Model(AsyncAttrs, DeclarativeBase):
     metadata = metadata
 
 
-Session = async_sessionmaker(engine, expire_on_commit=False)
+AsyncSession = async_sessionmaker(engine, expire_on_commit=False)
