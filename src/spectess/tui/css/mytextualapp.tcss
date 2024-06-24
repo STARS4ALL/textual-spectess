@@ -57,3 +57,7 @@ Input {
 	width: 30;
 	border: solid yellow;
 }
+
+.vertical_separator {
+	border:  heavy yellow;
+}

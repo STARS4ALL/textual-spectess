@@ -11,6 +11,9 @@
 import os
 import logging
 
+from pathlib import Path
+from typing import Iterable
+
 # ---------------
 # Textual imports
 # ---------------
@@ -18,7 +21,7 @@ import logging
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Sparkline, Rule
-from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button, Placeholder, Digits
+from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button, Placeholder, Digits, DirectoryTree
 
 from textual.containers import Horizontal, Vertical
 
@@ -42,6 +45,10 @@ log = logging.getLogger(__name__)
 # -------------------
 # Auxiliary functions
 # -------------------
+
+class FilteredDirectoryTree(DirectoryTree):
+    def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
+        return [path for path in paths if not path.name.startswith(".")]
 
 class MyTextualApp(App[str]):
 
@@ -82,12 +89,19 @@ class MyTextualApp(App[str]):
                         yield RadioButton("Save samples", id="save")
                         yield Button("Capture", id="capture_button", disabled=True)
                         yield ProgressBar(id="tst_ring", total=100, show_eta=False)
-                        yield Label(self.controller.session_id, id="session_id", classes="session")
+                        yield Label(self.controller.session_id, id="session_id1", classes="session")
                         yield Digits(self.controller.wavelength, id="cur_wave")
                     yield DataTable(id="tst_metadata")
                 yield Log(id="tst_log", classes="box")       
             with TabPane("Export", id="export"):
-                yield Placeholder("TO BE DEFINED", id="p1")
+                with Horizontal():
+                    yield FilteredDirectoryTree(os.getcwd())
+                    yield Rule(orientation="vertical", classes="vertical_separator")
+                    with Vertical(id="export_controls"):
+                        yield Label(self.controller.session_id, id="session_id2", classes="session")
+                        yield Input(placeholder="Folder", id="folder")
+                        yield Input(placeholder="File name", id="filename")
+                        yield Button("Export", id="export_button")
        
         yield Footer()
     
@@ -113,8 +127,8 @@ class MyTextualApp(App[str]):
             table.add_columns(*("Property", "Value"))
             table.show_cursor = False
             table.fixed_columns = 2
-        self.session_w = self.query_one("#session_id")
-        self.session_w.border_title = "Session Id"
+        self.session1_w = self.query_one("#session_id1")
+        self.session1_w.border_title = "Session Id"
         self.capture_button_w = self.query_one("#capture_button")
         self.log_w[TEST] = self.query_one("#tst_log")
         self.log_w[TEST].border_title = f"{label(TEST)} LOG"
@@ -132,6 +146,12 @@ class MyTextualApp(App[str]):
         # ----------
         # Export Tab
         # ----------
+        self.session2_w = self.query_one("#session_id2")
+        self.session2_w.border_title = "Session Id"
+        self.folder_w = self.query_one("#folder")
+        self.folder_w.border_title = "Directory"
+        self.filename_w = self.query_one("#filename")
+        self.filename_w.border_title = "File Name"
        
 
     # -----------------------------
