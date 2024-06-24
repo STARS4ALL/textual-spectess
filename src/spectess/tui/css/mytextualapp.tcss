@@ -61,3 +61,7 @@ Input {
 .vertical_separator {
 	border:  heavy yellow;
 }
+
+#session_list {
+	border: solid yellow;
+}

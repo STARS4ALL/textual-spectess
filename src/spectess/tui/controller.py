@@ -72,6 +72,7 @@ class Controller:
         self._meas_session = measurements_session_id()
         self._filename = PurePath(f"spectrum_calib_{self._meas_session}.csv")
         self._directory = PurePath(os.getcwd())
+        self._selected_session = None
        
 
     # ========================================
@@ -117,6 +118,12 @@ class Controller:
     def directory(self, value):
         self._directory = PurePath(value)
     
+
+    def set_selected_session(self, value):
+        log.info("Setting selected session at %s", value)
+        self._selected_session = int(value)
+        self._filename = PurePath(f"spectrum_calib_{value}.csv")
+        self.view.set_filename(str(self._filename))
 
     # ---------------------------
     # Database Config section API
@@ -191,39 +198,6 @@ class Controller:
                     await session.rollback()
             self._cur_mac = info.get('mac')
             self.view.enable_capture()
-                    
-
-    def start_readings(self, role):
-        self.photometer[role].clear()
-        self.ring[role] = RingBuffer(capacity=self._nsamples)
-        self.consumer[role] = asyncio.create_task(self.receive(role))
-        self.producer[role] = asyncio.create_task(self.photometer[role].readings())
-
-
-    async def save_samples(self, role):
-        #logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-        async with self.session_class() as session:
-            async with session.begin():
-                q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
-                dbphot = (await session.scalars(q)).one()
-                samples = await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
-                while len(self.ring[role]) > 0:
-                    s = self.ring[role].pop()
-                    samples.append(
-                        Samples(
-                            tstamp = s['tstamp'],
-                            role = label(role),
-                            session = self._meas_session,
-                            seq = s['seq'],
-                            mag = s['mag'],
-                            freq = s['freq'],
-                            temp_box = s['tamb'],
-                            wave = self._wavelength,
-                        )
-                    )
-                session.add(dbphot)
-        #logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
-
 
     async def receive(self, role):
         '''Receiver consumer coroutine'''
@@ -245,29 +219,65 @@ class Controller:
             await self.save_samples(role)
             self._wavelength += self._wave_incr
             self.view.set_wavelength(self._wavelength)
+                    
+
+    def start_readings(self, role):
+        self.photometer[role].clear()
+        self.ring[role] = RingBuffer(capacity=self._nsamples)
+        self.consumer[role] = asyncio.create_task(self.receive(role))
+        self.producer[role] = asyncio.create_task(self.photometer[role].readings())
+
+
+    async def save_samples(self, role):
+        #logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        async with self.session_class() as session:
+            async with session.begin():
+                q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
+                dbphot = (await session.scalars(q)).one()
+                samples = await dbphot.awaitable_attrs.samples # Asunchronous relationship reload
+                while len(self.ring[role]) > 0:
+                    s = self.ring[role].pop()
+                    samples.append(
+                        Samples(
+                            tstamp = s['tstamp'],
+                            role = label(role),
+                            session = self._meas_session,
+                            seq = s['seq'],
+                            mag = s['mag'],
+                            freq = s['freq'],
+                            temp_box = s['tamb'],
+                            wave = self._wavelength,
+                        )
+                    )
+                session.add(dbphot)
+        #logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+
+    async def get_sessions(self, role):
+        async with self.session_class() as session:
+            async with session.begin():
+                q = (select(Samples.session).distinct().join(Samples.photometer)
+                    .where(Samples.role == label(role))).order_by(Samples.session.desc())
+                session_ids = (await session.scalars(q)).all()
+                result = tuple(str(item) for item in session_ids)
+        return result
 
     async def export_samples(self):
         HEADERS = ("name", "mac", "model", "sensor", "freq_offset", "session","role","wavelength","seq_number","timestamp","frequency","box_temperature")
-        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         async with self.session_class() as session:
             async with session.begin():
                 q = (select(Samples).join(Samples.photometer.and_(DbPhotometer.mac == self._cur_mac))
-                    .where(Samples.session == '20240624084540')
+                    .where(Samples.session == self._selected_session)
                     .order_by(Samples.wave, Samples.seq))
                 samples = (await session.scalars(q)).all()
                 filename = str(self._directory / self._filename)
             with open(filename, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=';')
-                log.info("COMIENZA LA EXPORTACION")
                 writer.writerow(HEADERS)
                 for sample in samples:
-                    phot = await sample.awaitable_attrs.photometer # Asunchronous relationship preload
-                    #phot = sample.photometer
+                    phot = await sample.awaitable_attrs.photometer # Asunchronous relationship reload
                     row = [phot.name, phot.mac, phot.model, phot.sensor, phot.freq_offset, 
                         sample.session, sample.role, sample.wave, sample.seq, sample.tstamp,  sample.freq, sample.temp_box]
                     writer.writerow(row)
-                log.info("TREMINA LA EXPORTACION")
-        logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
        
 
     # ======================

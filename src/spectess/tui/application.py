@@ -21,7 +21,7 @@ from typing import Iterable
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Sparkline, Rule
-from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button, Placeholder, Digits, DirectoryTree
+from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button, Placeholder, Digits, DirectoryTree, OptionList
 
 from textual.containers import Horizontal, Vertical
 
@@ -98,7 +98,7 @@ class MyTextualApp(App[str]):
                     yield FilteredDirectoryTree(os.getcwd())
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     with Vertical(id="export_controls"):
-                        yield Label(self.controller.session_id, id="session_id2", classes="session")
+                        yield OptionList(self.controller.session_id, id="session_list")
                         yield Input(placeholder="Directory", id="directory")
                         yield Input(placeholder="File name", id="filename")
                         yield Button("Export", id="export_button")
@@ -146,14 +146,16 @@ class MyTextualApp(App[str]):
         # ----------
         # Export Tab
         # ----------
-        self.session2_w = self.query_one("#session_id2")
-        self.session2_w.border_title = "Session Id"
         self.folder_w = self.query_one("#directory")
         self.folder_w.border_title = "Directory"
         self.folder_w.value = self.controller.directory
         self.filename_w = self.query_one("#filename")
         self.filename_w.border_title = "File Name"
         self.filename_w.value = self.controller.filename
+        self.session_list_w = self.query_one("#session_list")
+        self.session_list_w.border_title = "Avail. Sessions"
+        sessions = await self.controller.get_sessions(TEST)
+        self.session_list_w.add_options(sessions)
        
 
     # =============================
@@ -189,6 +191,9 @@ class MyTextualApp(App[str]):
 
     def disable_capture(self):
         self.capture_button_w.disabled = True
+
+    def set_filename(self, value):
+        self.filename_w.value = value
 
     # ======================
     # Textual event handlers
@@ -248,6 +253,12 @@ class MyTextualApp(App[str]):
     @on(Input.Submitted, "#filename")
     def filename(self, event: Input.Submitted) -> None:
         self.controller.filename = event.control.value
+
+    @on(OptionList.OptionSelected, "#session_list")
+    def selected_session(self, event: OptionList.OptionSelected) -> None:
+        option = event.control.get_option_at_index(event.option_index)
+        self.controller.set_selected_session(option.prompt)
+
 
     
 
