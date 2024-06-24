@@ -150,6 +150,7 @@ class MyTextualApp(App[str]):
         self.session2_w.border_title = "Session Id"
         self.folder_w = self.query_one("#folder")
         self.folder_w.border_title = "Directory"
+        self.folder_w.value = os.getcwd()
         self.filename_w = self.query_one("#filename")
         self.filename_w.border_title = "File Name"
        
