@@ -116,6 +116,7 @@ class Controller:
         log.info("Setting starting wavelength to %s", value)
         self._wavelength = int(value)
         await self._set_property('calibration', 'wavelength', value)
+        self.view.set_wavelength(value)
 
     async def get_start_wavelength(self):
         value = await self._get_property('calibration', 'wavelength')
@@ -169,6 +170,7 @@ class Controller:
                     log.warn("Ignoring already saved photometer entry")
                     await session.rollback()
             self._cur_mac = info.get('mac')
+            self.view.enable_capture()
                     
 
     def start_readings(self, role):
@@ -179,7 +181,7 @@ class Controller:
 
 
     async def save_samples(self, role):
-        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        #logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         async with self.session_class() as session:
             async with session.begin():
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
@@ -200,7 +202,7 @@ class Controller:
                         )
                     )
                 session.add(dbphot)
-        logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
+        #logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
 
 
     async def receive(self, role):
@@ -222,7 +224,7 @@ class Controller:
         else:
             await self.save_samples(role)
             self._wavelength += self._wave_incr
-            self.view.update_wavelength(self._wavelength)
+            self.view.set_wavelength(self._wavelength)
        
 
     # ======================

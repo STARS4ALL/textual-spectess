@@ -80,14 +80,15 @@ class MyTextualApp(App[str]):
                     with Vertical(id="capture_controls"):
                         yield Switch(id="tst_phot")
                         yield RadioButton("Save samples", id="save")
-                        yield Button("Capture", id="start_button")
+                        yield Button("Capture", id="capture_button", disabled=True)
                         yield ProgressBar(id="tst_ring", total=100, show_eta=False)
                         yield Label(self.controller.session_id, id="session_id", classes="session")
                         yield Digits(self.controller.wavelength, id="cur_wave")
                     yield DataTable(id="tst_metadata")
-                yield Log(id="tst_log", classes="box")
+                yield Log(id="tst_log", classes="box")       
             with TabPane("Export", id="export"):
                 yield Placeholder("TO BE DEFINED", id="p1")
+       
         yield Footer()
     
 
@@ -97,15 +98,12 @@ class MyTextualApp(App[str]):
             table.add_columns(*("Property", "Value"))
             table.show_cursor = False
             table.fixed_columns = 2
-
-        #self.configtable_w = self.query_one("#config_table")
-        #self.configtable_w.add_columns(*("Section", "Property", "Value"))
-        #self.configtable_w.fixed_columns = 3
         
         self.session_w = self.query_one("#session_id")
         self.session_w.border_title = "Session Id"
-        
 
+        self.capture_button_w = self.query_one("#capture_button")
+        
         self.log_w[TEST] = self.query_one("#tst_log")
         self.log_w[TEST].border_title = f"{label(TEST)} LOG"
         
@@ -164,8 +162,14 @@ class MyTextualApp(App[str]):
     def set_start_wavelength(self, value):
         self.start_wave_w.value = str(value)
 
-    def update_wavelength(self, value):
+    def set_wavelength(self, value):
         self.cur_wave_w.update(f"{value:>8}")
+
+    def enable_capture(self):
+        self.capture_button_w.disabled = False
+
+    def disable_capture(self):
+        self.capture_button_w.disabled = True
 
     # ----------------------
     # Textual event handlers
@@ -180,12 +184,13 @@ class MyTextualApp(App[str]):
             w = self.run_worker(self.controller.get_info(TEST), exclusive=True)
         else:
             self.clear_metadata_table(TEST)
+            self.disable_capture()
 
     @on(RadioButton.Changed, "#save")
     def save_pressed(self, event: Button.Pressed) -> None:
         self.controller.save = event.control.value
 
-    @on(Button.Pressed, "#start_button")
+    @on(Button.Pressed, "#capture_button")
     def start_pressed(self, event: Button.Pressed) -> None:
         self.controller.start_readings(TEST)
 
