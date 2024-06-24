@@ -206,10 +206,10 @@ class Controller:
             async with session.begin():
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
                 dbphot = (await session.scalars(q)).one()
-                await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
+                samples = await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
                 while len(self.ring[role]) > 0:
                     s = self.ring[role].pop()
-                    dbphot.samples.append(
+                    samples.append(
                         Samples(
                             tstamp = s['tstamp'],
                             role = label(role),
@@ -247,18 +247,26 @@ class Controller:
             self.view.set_wavelength(self._wavelength)
 
     async def export_samples(self):
+        HEADERS = ("name", "mac", "model", "sensor", "freq_offset", "session","role","wavelength","seq_number","timestamp","frequency","box_temperature")
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         async with self.session_class() as session:
             async with session.begin():
-                q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
-                dbphot = (await session.scalars(q)).one()
-                await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
+                q = (select(Samples).join(Samples.photometer.and_(DbPhotometer.mac == self._cur_mac))
+                    .where(Samples.session == '20240624084540')
+                    .order_by(Samples.wave, Samples.seq))
+                samples = (await session.scalars(q)).all()
                 filename = str(self._directory / self._filename)
             with open(filename, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=';')
-                for sample in dbphot.samples:
-                    row = [dbphot.name, dbphot.mac, dbphot.model, dbphot.sensor, dbphot.freq_offset, sample.session, sample.role, sample.wave, sample.seq, sample.tstamp,  sample.freq]
+                log.info("COMIENZA LA EXPORTACION")
+                writer.writerow(HEADERS)
+                for sample in samples:
+                    phot = await sample.awaitable_attrs.photometer # Asunchronous relationship preload
+                    #phot = sample.photometer
+                    row = [phot.name, phot.mac, phot.model, phot.sensor, phot.freq_offset, 
+                        sample.session, sample.role, sample.wave, sample.seq, sample.tstamp,  sample.freq, sample.temp_box]
                     writer.writerow(row)
+                log.info("TREMINA LA EXPORTACION")
         logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
        
 
