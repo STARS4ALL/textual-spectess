@@ -92,49 +92,46 @@ class MyTextualApp(App[str]):
         yield Footer()
     
 
-    async def on_mount(self) -> None:   
+    async def on_mount(self) -> None:
+        # ----------
+        # Config Tab
+        # ----------
+        self.start_wave_w = self.query_one("#wavelength")
+        self.start_wave_w.value = await self.controller.get_start_wavelength()
+        self.start_wave_w.border_title = "Starting Wavelength (nm)"
+        self.wave_incr_w = self.query_one("#wave_incr")
+        self.wave_incr_w.value = await self.controller.get_wave_incr()
+        self.wave_incr_w.border_title = "Wavelength Increment (nm)"
+        self.nsamples_w = self.query_one("#nsamples")
+        self.nsamples_w.border_title = "Number of samples"
+        self.nsamples_w.value = await self.controller.get_nsamples()
+        # -----------
+        # Capture Tab
+        # -----------
         for ident in ("#tst_metadata",):
             table = self.query_one(ident)
             table.add_columns(*("Property", "Value"))
             table.show_cursor = False
             table.fixed_columns = 2
-        
         self.session_w = self.query_one("#session_id")
         self.session_w.border_title = "Session Id"
-
         self.capture_button_w = self.query_one("#capture_button")
-        
         self.log_w[TEST] = self.query_one("#tst_log")
         self.log_w[TEST].border_title = f"{label(TEST)} LOG"
-        
         self.switch_w[TEST] = self.query_one("#tst_phot")
         self.switch_w[TEST].border_title = 'OFF / ON'
-        
         self.metadata_w[TEST] = self.query_one("#tst_metadata")
-        
-        self.nsamples_w = self.query_one("#nsamples")
-        self.nsamples_w.border_title = "Number of samples"
-        self.nsamples_w.value = await self.controller.get_nsamples()
-        
-        self.start_wave_w = self.query_one("#wavelength")
-        self.start_wave_w.value = await self.controller.get_start_wavelength()
-        self.start_wave_w.border_title = "Starting Wavelength (nm)"
-
-        self.wave_incr_w = self.query_one("#wave_incr")
-        self.wave_incr_w.value = await self.controller.get_wave_incr()
-        self.wave_incr_w.border_title = "Wavelength Increment (nm)"
-
         self.cur_wave_w = self.query_one("#cur_wave")
         self.cur_wave_w.update(f"{self.controller.wavelength:>8}")
         self.cur_wave_w.border_title = "Current Wavelength (nm)"
-
-        
         self.save_w = self.query_one("#save")
         self.save_w.value = self.controller.save
-
         self.progress_w[TEST] = self.query_one("#tst_ring")
         self.progress_w[TEST].total = int(await self.controller.get_nsamples())
         self.progress_w[TEST].border_title = "Progress"
+        # ----------
+        # Export Tab
+        # ----------
        
 
     # -----------------------------
