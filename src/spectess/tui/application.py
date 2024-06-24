@@ -89,7 +89,7 @@ class MyTextualApp(App[str]):
                         yield RadioButton("Save samples", id="save")
                         yield Button("Capture", id="capture_button", disabled=True)
                         yield ProgressBar(id="tst_ring", total=100, show_eta=False)
-                        yield Label(self.controller.session_id, id="session_id1", classes="session")
+                        yield Label(self.controller.session_id, id="session_id", classes="session")
                         yield Digits(self.controller.wavelength, id="cur_wave")
                     yield DataTable(id="tst_metadata")
                 yield Log(id="tst_log", classes="box")       
@@ -98,7 +98,7 @@ class MyTextualApp(App[str]):
                     yield FilteredDirectoryTree(os.getcwd())
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     with Vertical(id="export_controls"):
-                        yield OptionList(self.controller.session_id, id="session_list")
+                        yield OptionList(id="session_list")
                         yield Input(placeholder="Directory", id="directory")
                         yield Input(placeholder="File name", id="filename")
                         yield Button("Export", id="export_button")
@@ -127,7 +127,7 @@ class MyTextualApp(App[str]):
             table.add_columns(*("Property", "Value"))
             table.show_cursor = False
             table.fixed_columns = 2
-        self.session1_w = self.query_one("#session_id1")
+        self.session1_w = self.query_one("#session_id")
         self.session1_w.border_title = "Session Id"
         self.capture_button_w = self.query_one("#capture_button")
         self.log_w[TEST] = self.query_one("#tst_log")
