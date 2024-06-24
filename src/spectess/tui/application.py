@@ -18,7 +18,7 @@ import logging
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Sparkline, Rule
-from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button, Placeholder
+from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button, Placeholder, Digits
 
 from textual.containers import Horizontal, Vertical
 
@@ -82,6 +82,8 @@ class MyTextualApp(App[str]):
                         yield RadioButton("Save samples", id="save")
                         yield Button("Capture", id="start_button")
                         yield ProgressBar(id="tst_ring", total=100, show_eta=False)
+                        yield Label(self.controller.session_id, id="session_id", classes="session")
+                        yield Digits(self.controller.wavelength, id="cur_wave")
                     yield DataTable(id="tst_metadata")
                 yield Log(id="tst_log", classes="box")
             with TabPane("Export", id="export"):
@@ -100,6 +102,10 @@ class MyTextualApp(App[str]):
         #self.configtable_w.add_columns(*("Section", "Property", "Value"))
         #self.configtable_w.fixed_columns = 3
         
+        self.session_w = self.query_one("#session_id")
+        self.session_w.border_title = "Session Id"
+        
+
         self.log_w[TEST] = self.query_one("#tst_log")
         self.log_w[TEST].border_title = f"{label(TEST)} LOG"
         
@@ -112,13 +118,18 @@ class MyTextualApp(App[str]):
         self.nsamples_w.border_title = "Number of samples"
         self.nsamples_w.value = await self.controller.get_nsamples()
         
-        self.wavelenth_w = self.query_one("#wavelength")
-        self.wavelenth_w.value = await self.controller.get_wavelength()
-        self.wavelenth_w.border_title = "Starting Wavelength (nm)"
+        self.start_wave_w = self.query_one("#wavelength")
+        self.start_wave_w.value = await self.controller.get_start_wavelength()
+        self.start_wave_w.border_title = "Starting Wavelength (nm)"
 
         self.wave_incr_w = self.query_one("#wave_incr")
         self.wave_incr_w.value = await self.controller.get_wave_incr()
         self.wave_incr_w.border_title = "Wavelength Increment (nm)"
+
+        self.cur_wave_w = self.query_one("#cur_wave")
+        self.cur_wave_w.update(f"{self.controller.wavelength:>8}")
+        self.cur_wave_w.border_title = "Current Wavelength (nm)"
+
         
         self.save_w = self.query_one("#save")
         self.save_w.value = self.controller.save
@@ -150,8 +161,11 @@ class MyTextualApp(App[str]):
     def reset_progress(self, role):
         self.progress_w[role].progress = 0
 
-    def set_wavelength(self, value):
-        self.wavelenth_w.value = str(value)
+    def set_start_wavelength(self, value):
+        self.start_wave_w.value = str(value)
+
+    def update_wavelength(self, value):
+        self.cur_wave_w.update(f"{value:>8}")
 
     # ----------------------
     # Textual event handlers
@@ -181,7 +195,7 @@ class MyTextualApp(App[str]):
 
     @on(Input.Submitted, "#wavelength")
     def wavelength(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_wavelength(event.control.value), exclusive=True)
+        self.run_worker(self.controller.set_start_wavelength(event.control.value), exclusive=True)
 
     @on(Input.Submitted, "#wave_incr")
     def wave_incr(self, event: Input.Submitted) -> None:

@@ -24,9 +24,11 @@ Input {
 	border: solid yellow;
 }
 
-.mylabels
+.session
 {
-	margin: 1 0 0 0;	
+	height: auto;
+	width: auto;
+	border: solid yellow;	
 }
 
 
@@ -48,4 +50,10 @@ Input {
 #capture_controls {
 	layout: grid;
     grid-size: 2;
+}
+
+#cur_wave {
+	height: auto;
+	width: 30;
+	border: solid yellow;
 }

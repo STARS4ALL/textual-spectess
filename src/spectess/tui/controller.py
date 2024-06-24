@@ -82,6 +82,14 @@ class Controller:
         self.view.exit(return_code=2)
 
     @property
+    def session_id(self):
+        return self._meas_session
+
+    @property
+    def wavelength(self):
+        return str(self._wavelength)
+
+    @property
     def save(self):
         return bool(self._save)
 
@@ -104,12 +112,12 @@ class Controller:
         self._nsamples = int(value)
         return value
 
-    async def set_wavelength(self, value):
+    async def set_start_wavelength(self, value):
         log.info("Setting starting wavelength to %s", value)
         self._wavelength = int(value)
         await self._set_property('calibration', 'wavelength', value)
 
-    async def get_wavelength(self):
+    async def get_start_wavelength(self):
         value = await self._get_property('calibration', 'wavelength')
         self._wavelength = int(value)
         return value
@@ -171,31 +179,27 @@ class Controller:
 
 
     async def save_samples(self, role):
-        log = logging.getLogger(label(role))
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-        if not self._save:
-            self.view.append_log(role, "WARNING: not saving samples")
-        else:
-            async with self.session_class() as session:
-                async with session.begin():
-                    q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
-                    dbphot = (await session.scalars(q)).one()
-                    await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
-                    while len(self.ring[role]) > 0:
-                        s = self.ring[role].pop()
-                        dbphot.samples.append(
-                            Samples(
-                                tstamp = s['tstamp'],
-                                role = label(role),
-                                session = self._meas_session,
-                                seq = s['seq'],
-                                mag = s['mag'],
-                                freq = s['freq'],
-                                temp_box = s['tamb'],
-                                wave = self._wavelength,
-                            )
+        async with self.session_class() as session:
+            async with session.begin():
+                q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
+                dbphot = (await session.scalars(q)).one()
+                await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
+                while len(self.ring[role]) > 0:
+                    s = self.ring[role].pop()
+                    dbphot.samples.append(
+                        Samples(
+                            tstamp = s['tstamp'],
+                            role = label(role),
+                            session = self._meas_session,
+                            seq = s['seq'],
+                            mag = s['mag'],
+                            freq = s['freq'],
+                            temp_box = s['tamb'],
+                            wave = self._wavelength,
                         )
-                    session.add(dbphot)
+                    )
+                session.add(dbphot)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
 
 
@@ -213,9 +217,12 @@ class Controller:
         median, mean, stdev = self.ring[role].statistics()
         line = f"median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
         self.view.append_log(role, line)
-        await self.save_samples(role)
-        self._wavelength += self._wave_incr
-        self.view.set_wavelength(self._wavelength)
+        if not self._save:
+            self.view.append_log(role, "WARNING: not saving samples") 
+        else:
+            await self.save_samples(role)
+            self._wavelength += self._wave_incr
+            self.view.update_wavelength(self._wavelength)
        
 
     # ======================
