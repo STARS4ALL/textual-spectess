@@ -99,7 +99,7 @@ class MyTextualApp(App[str]):
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     with Vertical(id="export_controls"):
                         yield Label(self.controller.session_id, id="session_id2", classes="session")
-                        yield Input(placeholder="Folder", id="folder")
+                        yield Input(placeholder="Directory", id="directory")
                         yield Input(placeholder="File name", id="filename")
                         yield Button("Export", id="export_button")
        
@@ -148,16 +148,17 @@ class MyTextualApp(App[str]):
         # ----------
         self.session2_w = self.query_one("#session_id2")
         self.session2_w.border_title = "Session Id"
-        self.folder_w = self.query_one("#folder")
+        self.folder_w = self.query_one("#directory")
         self.folder_w.border_title = "Directory"
-        self.folder_w.value = os.getcwd()
+        self.folder_w.value = self.controller.directory
         self.filename_w = self.query_one("#filename")
         self.filename_w.border_title = "File Name"
+        self.filename_w.value = self.controller.filename
        
 
-    # -----------------------------
+    # =============================
     # API exposed to the Controller
-    # -----------------------------
+    # =============================
     
     def append_log(self, role, line):
         self.log_w[role].write_line(line)
@@ -189,12 +190,32 @@ class MyTextualApp(App[str]):
     def disable_capture(self):
         self.capture_button_w.disabled = True
 
-    # ----------------------
+    # ======================
     # Textual event handlers
-    # ----------------------
+    # ======================
 
     def action_quit(self):
         self.controller.quit()
+
+    # ----------
+    # Config Tab
+    # ----------
+
+    @on(Input.Submitted, "#nsamples")
+    def nsamples(self, event: Input.Submitted) -> None:
+        self.run_worker(self.controller.set_nsamples(event.control.value), exclusive=True)
+
+    @on(Input.Submitted, "#wavelength")
+    def wavelength(self, event: Input.Submitted) -> None:
+        self.run_worker(self.controller.set_start_wavelength(event.control.value), exclusive=True)
+
+    @on(Input.Submitted, "#wave_incr")
+    def wave_incr(self, event: Input.Submitted) -> None:
+        self.run_worker(self.controller.set_wave_incr(event.control.value), exclusive=True)
+
+    # -----------
+    # Capture Tab
+    # -----------
 
     @on(Switch.Changed, "#tst_phot")
     def tst_switch_pressed(self, event):
@@ -212,15 +233,22 @@ class MyTextualApp(App[str]):
     def start_pressed(self, event: Button.Pressed) -> None:
         self.controller.start_readings(TEST)
 
-    @on(Input.Submitted, "#nsamples")
-    def nsamples(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_nsamples(event.control.value), exclusive=True)
+    @on(Button.Pressed, "#export_button")
+    def export_pressed(self, event: Button.Pressed) -> None:
+        self.run_worker(self.controller.export_samples(), exclusive=True)
 
-    @on(Input.Submitted, "#wavelength")
-    def wavelength(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_start_wavelength(event.control.value), exclusive=True)
+    # ----------
+    # Export Tab
+    # ----------
 
-    @on(Input.Submitted, "#wave_incr")
-    def wave_incr(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_wave_incr(event.control.value), exclusive=True)
+    @on(Input.Submitted, "#directory")
+    def directory(self, event: Input.Submitted) -> None:
+        self.controller.directory = event.control.value
 
+    @on(Input.Submitted, "#filename")
+    def filename(self, event: Input.Submitted) -> None:
+        self.controller.filename = event.control.value
+
+    
+
+  

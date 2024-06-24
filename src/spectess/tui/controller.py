@@ -9,10 +9,11 @@
 # -------------------
 
 import os
-import sys
-import argparse
+import csv
 import logging
 import asyncio
+
+from pathlib import PurePath
 
 # -------------------
 # Third party imports
@@ -69,6 +70,8 @@ class Controller:
         self._wave_incr = 0
         self._save = False
         self._meas_session = measurements_session_id()
+        self._filename = PurePath(f"spectrum_calib_{self._meas_session}.csv")
+        self._directory = PurePath(os.getcwd())
        
 
     # ========================================
@@ -97,6 +100,23 @@ class Controller:
     def save(self, value):
         log.info("setting save to %s", value)
         self._save = bool(value)
+
+    @property
+    def filename(self):
+        return str(self._filename)
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = PurePath(value)
+
+    @property
+    def directory(self):
+        return str(self._directory)
+
+    @directory.setter
+    def directory(self, value):
+        self._directory = PurePath(value)
+    
 
     # ---------------------------
     # Database Config section API
@@ -202,7 +222,7 @@ class Controller:
                         )
                     )
                 session.add(dbphot)
-        #logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
+        #logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 
     async def receive(self, role):
@@ -225,6 +245,21 @@ class Controller:
             await self.save_samples(role)
             self._wavelength += self._wave_incr
             self.view.set_wavelength(self._wavelength)
+
+    async def export_samples(self):
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        async with self.session_class() as session:
+            async with session.begin():
+                q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
+                dbphot = (await session.scalars(q)).one()
+                await dbphot.awaitable_attrs.samples # Asunchronous relationship preload
+                filename = str(self._directory / self._filename)
+            with open(filename, 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile, delimiter=';')
+                for sample in dbphot.samples:
+                    row = [dbphot.name, dbphot.mac, dbphot.model, dbphot.sensor, dbphot.freq_offset, sample.session, sample.role, sample.wave, sample.seq, sample.tstamp,  sample.freq]
+                    writer.writerow(row)
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
        
 
     # ======================

@@ -163,3 +163,4 @@ cython_debug/
 *.db
 _version.py
 test*.py
+*.csv
