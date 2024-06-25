@@ -1,17 +1,47 @@
-App {
-	width: 114;
-	height: 32;
+
+/* ======= */
+/* GENERAL */
+/* ======= */
+
+MyTextualApp {
+	width: 116;
+	height: 41;
 }
 
 Footer {
 	height: 1;
 }
 
-Switch {
-    height: auto;
-    width: 14;
-    align: right bottom;
-    border: solid yellow;
+Input {
+	border: solid yellow;
+}
+
+.vertical_separator {
+	border:  thick yellow;
+}
+
+/* ============ */
+/* CAPTURE PANE */
+/* ============ */
+
+.capture_controls {
+	height: 1fr;
+	width: 1fr;
+	border: solid yellow;
+}
+
+#capture_controls_container {
+	layout: grid;
+    grid-size: 2;
+}
+
+#detect_phot {
+    width: 0.6fr;
+}
+
+#phot_info_table {
+	 width: 1fr;
+	 height: 5fr;
 }
 
 
@@ -19,48 +49,23 @@ Switch {
 	background: darkblue;
 }
 
-
-Input {
-	border: solid yellow;
-}
-
-.session
-{
-	height: auto;
-	width: auto;
-	border: solid yellow;	
-}
-
-
-.table {
-	 height: 5fr;
-}
-
-.box {
+.log {
     border: double yellow;
     height: 1fr;
 }
 
+/* =========== */
+/* CONFIG PANE */
+/* =========== */
 
 #config_tab {
-	layout: grid;
-    grid-size: 2 2;
-}
-
-#capture_controls {
 	layout: grid;
     grid-size: 2;
 }
 
-#cur_wave {
-	height: auto;
-	width: 30;
-	border: solid yellow;
-}
-
-.vertical_separator {
-	border:  heavy yellow;
-}
+/* =========== */
+/* EXPORT PANE */
+/* =========== */
 
 #session_list {
 	border: solid yellow;

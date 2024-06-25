@@ -65,6 +65,7 @@ class Controller:
         self.photometer[TEST] = builder.build(TESSW, TEST)
         self.engine = engine
         self.session_class = session_class
+        self._role = TEST
         self._nsamples = 0
         self._wavelength = 0
         self._wave_incr = 0
@@ -94,12 +95,19 @@ class Controller:
         return str(self._wavelength)
 
     @property
+    def role(self):
+        return int(self._role)
+
+    @role.setter
+    def role(self, value):
+        self._role = int(value)
+
+    @property
     def save(self):
         return bool(self._save)
 
     @save.setter
     def save(self, value):
-        log.info("setting save to %s", value)
         self._save = bool(value)
 
     @property
