@@ -183,8 +183,8 @@ class Controller:
         except Exception as e:
             log.error(e)
         else:
-            self.view.clear_metadata_table()
-            self.view.update_metadata_table(info)
+            self.view.clear_phot_info_table()
+            self.view.update_phot_info_table(info)
             async with self.session_class() as session:
                 async with session.begin():
                     q = select(DbPhotometer).where(DbPhotometer.mac == info.get('mac'))
@@ -207,18 +207,18 @@ class Controller:
 
     async def receive(self):
         '''Receiver consumer coroutine'''
-        role = self._role
-        log = logging.getLogger(label(role))
+        role = label(self._role)
+        log = logging.getLogger(role)
         self.view.reset_progress()
         while len(self.ring) < self._nsamples:
             msg = await self.photometer.queue.get()
             self.ring.append(msg)
-            line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{msg.get('seq')}] [{self._wavelength} nm] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
+            line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{role}] [{msg.get('seq')}] [{self._wavelength} nm] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
             self.view.append_log(line)
             self.view.update_progress(1)
         self.producer.cancel()
         median, mean, stdev = self.ring.statistics()
-        line = f"median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
+        line = f"[{role}] median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
         self.view.append_log(line)
         if not self._save:
             self.view.append_log("WARNING: not saving samples") 
@@ -237,6 +237,7 @@ class Controller:
 
     async def save_samples(self):
         #logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        role = label(self._role)
         async with self.session_class() as session:
             async with session.begin():
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
@@ -247,7 +248,7 @@ class Controller:
                     samples.append(
                         Samples(
                             tstamp = s['tstamp'],
-                            role = label(self._role),
+                            role = role,
                             session = self._meas_session,
                             seq = s['seq'],
                             mag = s['mag'],
@@ -260,13 +261,13 @@ class Controller:
         #logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
     async def get_sessions(self):
-        role = self._role
+        role = label(self._role)
         async with self.session_class() as session:
             async with session.begin():
                 q = (select(Samples.session).distinct().join(Samples.photometer)
-                    .where(Samples.role == label(role))).order_by(Samples.session.desc())
+                    .where(Samples.role == role)).order_by(Samples.session.desc())
                 session_ids = (await session.scalars(q)).all()
-                result = tuple( f"{str(item)}_{label(role)}" for item in session_ids)
+                result = tuple( f"{str(item)}_{role}" for item in session_ids)
         return result
 
     async def export_samples(self):

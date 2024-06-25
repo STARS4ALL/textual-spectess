@@ -96,7 +96,7 @@ class MyTextualApp(App[str]):
                         yield Digits(self.controller.wavelength, classes="capture_controls", id="cur_wave")
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
-                yield Log(id="tst_log", classes="log")       
+                yield Log(id="log", classes="log")       
             with TabPane("Export", id="export"):
                 with Horizontal():
                     yield FilteredDirectoryTree(os.getcwd())
@@ -135,8 +135,8 @@ class MyTextualApp(App[str]):
         self.session1_w = self.query_one("#session_id")
         self.session1_w.border_title = "Session Id"
         self.capture_button_w = self.query_one("#capture_button")
-        self.log_w = self.query_one("#tst_log")
-        self.log_w.border_title = f"{label(TEST)} LOG"
+        self.log_w = self.query_one("#log")
+        self.log_w.border_title = "LOG"
         self.switch_w = self.query_one("#detect_phot")
         self.switch_w.border_title = 'OFF / ON'
         self.phot_info_table_w = self.query_one("#phot_info_table")
@@ -173,10 +173,10 @@ class MyTextualApp(App[str]):
     def reset_switch(self):
         self.switch_w.value = False
    
-    def clear_phot_info_table_table(self):
+    def clear_phot_info_table(self):
         self.phot_info_table_w.clear()
 
-    def update_phot_info_table_table(self, phot_info_table):
+    def update_phot_info_table(self, phot_info_table):
         self.phot_info_table_w.add_rows(phot_info_table.items())
 
     def update_progress(self, amount):
@@ -232,10 +232,10 @@ class MyTextualApp(App[str]):
         if event.control.value:
             w = self.run_worker(self.controller.get_info(), exclusive=True)
         else:
-            self.clear_phot_info_table_table()
+            self.clear_phot_info_table()
             self.disable_capture()
 
-    @on(RadioButton.Changed, "#save")
+    @on(RadioButton.Changed, "#save_radio")
     def save_pressed(self, event: Button.Pressed) -> None:
         self.controller.save = event.control.value
 

@@ -45,7 +45,7 @@ Input {
 }
 
 
-#tst_log {
+#log {
 	background: darkblue;
 }
 
