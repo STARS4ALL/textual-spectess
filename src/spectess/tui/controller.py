@@ -56,15 +56,17 @@ log = logging.getLogger(__name__)
 class Controller:
 
     def __init__(self, engine, session_class):
-        self.photometer = [None, None]
-        self.producer = [None, None]
-        self.consumer = [None, None]
-        self.ring = [None, None]
+        self.photometer = None
+        self.producer = None
+        self.consumer = None
+        self.ring = None
         self.quit_event =  None
         builder = PhotometerBuilder()
-        self.photometer[TEST] = builder.build(TESSW, TEST)
+        # Although we use TEST / REF roles, we always build TEST like Photometer objects
+        self.photometer = builder.build(TESSW, TEST)
         self.engine = engine
         self.session_class = session_class
+        self._role = TEST
         self._nsamples = 0
         self._wavelength = 0
         self._wave_incr = 0
@@ -94,12 +96,19 @@ class Controller:
         return str(self._wavelength)
 
     @property
+    def role(self):
+        return int(self._role)
+
+    @role.setter
+    def role(self, value):
+        self._role = int(value)
+
+    @property
     def save(self):
         return bool(self._save)
 
     @save.setter
     def save(self, value):
-        log.info("setting save to %s", value)
         self._save = bool(value)
 
     @property
@@ -160,25 +169,25 @@ class Controller:
         self._wave_incr = int(value)
         return value
         
-    async def get_info(self, role):
+    async def get_info(self):
         '''Get Photometer Info'''
+        role = self._role
         log = logging.getLogger(label(role))
         try:
-            info = await self.photometer[role].get_info()
+            info = await self.photometer.get_info()
         except asyncio.exceptions.TimeoutError:
             line = f"Failed contacting {label(role)} photometer"
             log.error(line)
-            self.view.append_log(role, line)
-            self.view.reset_switch(role)
-            self.view.clear_metadata_table(role)
+            self.view.append_log(line)
+            self.view.reset_switch()
+            self.view.clear_metadata_table()
         except Exception as e:
             log.error(e)
         else:
-            self.view.clear_metadata_table(role)
-            self.view.update_metadata_table(role, info)
+            self.view.clear_phot_info_table()
+            self.view.update_phot_info_table(info)
             async with self.session_class() as session:
-                session.begin()
-                try:
+                async with session.begin():
                     q = select(DbPhotometer).where(DbPhotometer.mac == info.get('mac'))
                     dbphot = (await session.scalars(q)).one_or_none()
                     if not dbphot:
@@ -193,55 +202,54 @@ class Controller:
                                 freq_offset = info.get('freq_offset'),
                             )
                         )
-                    await session.commit()
-                except Exception as e:
-                    log.warn("Ignoring already saved photometer entry")
-                    await session.rollback()
             self._cur_mac = info.get('mac')
             self.view.enable_capture()
 
-    async def receive(self, role):
+
+    async def receive(self):
         '''Receiver consumer coroutine'''
-        log = logging.getLogger(label(role))
-        self.view.reset_progress(role)
-        while len(self.ring[role]) < self._nsamples:
-            msg = await self.photometer[role].queue.get()
-            self.ring[role].append(msg)
-            line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{msg.get('seq')}] [{self._wavelength} nm] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
-            self.view.append_log(role, line)
-            self.view.update_progress(role, 1)
-        self.producer[role].cancel()
-        median, mean, stdev = self.ring[role].statistics()
-        line = f"median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
-        self.view.append_log(role, line)
+        role = label(self._role)
+        log = logging.getLogger(role)
+        self.view.reset_progress()
+        while len(self.ring) < self._nsamples:
+            msg = await self.photometer.queue.get()
+            self.ring.append(msg)
+            line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{role}] [{msg.get('seq')}] [{self._wavelength} nm] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
+            self.view.append_log(line)
+            self.view.update_progress(1)
+        self.producer.cancel()
+        median, mean, stdev = self.ring.statistics()
+        line = f"[{role}] median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
+        self.view.append_log(line)
         if not self._save:
-            self.view.append_log(role, "WARNING: not saving samples") 
+            self.view.append_log("WARNING: not saving samples") 
         else:
-            await self.save_samples(role)
+            await self.save_samples()
             self._wavelength += self._wave_incr
             self.view.set_wavelength(self._wavelength)
                     
 
-    def start_readings(self, role):
-        self.photometer[role].clear()
-        self.ring[role] = RingBuffer(capacity=self._nsamples)
-        self.consumer[role] = asyncio.create_task(self.receive(role))
-        self.producer[role] = asyncio.create_task(self.photometer[role].readings())
+    def start_readings(self):
+        self.photometer.clear()
+        self.ring = RingBuffer(capacity=self._nsamples)
+        self.consumer = asyncio.create_task(self.receive())
+        self.producer = asyncio.create_task(self.photometer.readings())
 
 
-    async def save_samples(self, role):
+    async def save_samples(self):
         #logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        role = label(self._role)
         async with self.session_class() as session:
             async with session.begin():
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
                 dbphot = (await session.scalars(q)).one()
                 samples = await dbphot.awaitable_attrs.samples # Asunchronous relationship reload
-                while len(self.ring[role]) > 0:
-                    s = self.ring[role].pop()
+                while len(self.ring) > 0:
+                    s = self.ring.pop()
                     samples.append(
                         Samples(
                             tstamp = s['tstamp'],
-                            role = label(role),
+                            role = role,
                             session = self._meas_session,
                             seq = s['seq'],
                             mag = s['mag'],
@@ -253,13 +261,14 @@ class Controller:
                 session.add(dbphot)
         #logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-    async def get_sessions(self, role):
+    async def get_sessions(self):
+        role = label(self._role)
         async with self.session_class() as session:
             async with session.begin():
                 q = (select(Samples.session).distinct().join(Samples.photometer)
-                    .where(Samples.role == label(role))).order_by(Samples.session.desc())
+                    .where(Samples.role == role)).order_by(Samples.session.desc())
                 session_ids = (await session.scalars(q)).all()
-                result = tuple(str(item) for item in session_ids)
+                result = tuple( f"{str(item)}_{role}" for item in session_ids)
         return result
 
     async def export_samples(self):

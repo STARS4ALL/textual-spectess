@@ -20,8 +20,8 @@ from typing import Iterable
 
 from textual import on, work
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Sparkline, Rule
-from textual.widgets import  TabbedContent, TabPane, Input, RadioButton, Button, Placeholder, Digits, DirectoryTree, OptionList
+from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Rule
+from textual.widgets import  TabbedContent, TabPane, Input, RadioSet, RadioButton, Placeholder, Digits, DirectoryTree, OptionList
 
 from textual.containers import Horizontal, Vertical
 
@@ -67,11 +67,11 @@ class MyTextualApp(App[str]):
     def __init__(self, controller, description):
         self.controller = controller
         # Widget references in REF/TEST pairs
-        self.log_w = [None, None]
-        self.switch_w = [None, None]
-        self.metadata_w = [None, None]
-        self.progress_w = [None, None]
-        self.graph_w = [None, None]
+        self.log_w = None
+        self.switch_w = None
+        self.phot_info_table_w = None
+        self.progress_w = None
+        self.graph_w = None
         self.SUB_TITLE = description
         super().__init__()
 
@@ -83,16 +83,20 @@ class MyTextualApp(App[str]):
                 yield Input(placeholder="Wavelength increment [nm]", id="wave_incr", type="integer")
                 yield Input(placeholder="Number of samples", id="nsamples", type="integer")
             with TabPane("Capture", id="capture"):
-                with Horizontal():
-                    with Vertical(id="capture_controls"):
-                        yield Switch(id="tst_phot")
-                        yield RadioButton("Save samples", id="save")
-                        yield Button("Capture", id="capture_button", disabled=True)
-                        yield ProgressBar(id="tst_ring", total=100, show_eta=False)
-                        yield Label(self.controller.session_id, id="session_id", classes="session")
-                        yield Digits(self.controller.wavelength, id="cur_wave")
-                    yield DataTable(id="tst_metadata")
-                yield Log(id="tst_log", classes="box")       
+                with Horizontal(id="capture_div"):
+                    with Vertical(id="capture_controls_container"):
+                        yield Button("Capture", id="capture_button", classes="capture_controls", disabled=True)
+                        yield Switch(id="detect_phot", classes="capture_controls")
+                        with RadioSet(id="roles", classes="capture_controls"):
+                            yield RadioButton("Ref. Phot.", id="ref_role")
+                            yield RadioButton("Test Phot.", id="tst_role", value=True)
+                        yield RadioButton("Save samples", id="save_radio", classes="capture_controls")
+                        yield Label(self.controller.session_id, id="session_id", classes="capture_controls")
+                        yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
+                        yield Digits(self.controller.wavelength, classes="capture_controls", id="cur_wave")
+                    yield Rule(orientation="vertical", classes="vertical_separator")
+                    yield DataTable(id="phot_info_table")
+                yield Log(id="log", classes="log")       
             with TabPane("Export", id="export"):
                 with Horizontal():
                     yield FilteredDirectoryTree(os.getcwd())
@@ -102,7 +106,6 @@ class MyTextualApp(App[str]):
                         yield Input(placeholder="Directory", id="directory")
                         yield Input(placeholder="File name", id="filename")
                         yield Button("Export", id="export_button")
-       
         yield Footer()
     
 
@@ -122,27 +125,29 @@ class MyTextualApp(App[str]):
         # -----------
         # Capture Tab
         # -----------
-        for ident in ("#tst_metadata",):
+        for ident in ("#phot_info_table",):
             table = self.query_one(ident)
             table.add_columns(*("Property", "Value"))
             table.show_cursor = False
             table.fixed_columns = 2
+        self.roles_w = self.query_one("#roles")
+        self.roles_w.border_title = "Role"
         self.session1_w = self.query_one("#session_id")
         self.session1_w.border_title = "Session Id"
         self.capture_button_w = self.query_one("#capture_button")
-        self.log_w[TEST] = self.query_one("#tst_log")
-        self.log_w[TEST].border_title = f"{label(TEST)} LOG"
-        self.switch_w[TEST] = self.query_one("#tst_phot")
-        self.switch_w[TEST].border_title = 'OFF / ON'
-        self.metadata_w[TEST] = self.query_one("#tst_metadata")
+        self.log_w = self.query_one("#log")
+        self.log_w.border_title = "LOG"
+        self.switch_w = self.query_one("#detect_phot")
+        self.switch_w.border_title = 'OFF / ON'
+        self.phot_info_table_w = self.query_one("#phot_info_table")
         self.cur_wave_w = self.query_one("#cur_wave")
         self.cur_wave_w.update(f"{self.controller.wavelength:>8}")
-        self.cur_wave_w.border_title = "Current Wavelength (nm)"
-        self.save_w = self.query_one("#save")
+        self.cur_wave_w.border_title = "Cur. Wavelength (nm)"
+        self.save_w = self.query_one("#save_radio")
         self.save_w.value = self.controller.save
-        self.progress_w[TEST] = self.query_one("#tst_ring")
-        self.progress_w[TEST].total = int(await self.controller.get_nsamples())
-        self.progress_w[TEST].border_title = "Progress"
+        self.progress_w = self.query_one("#progress_phot")
+        self.progress_w.total = int(await self.controller.get_nsamples())
+        self.progress_w.border_title = "Progress"
         # ----------
         # Export Tab
         # ----------
@@ -154,7 +159,7 @@ class MyTextualApp(App[str]):
         self.filename_w.value = self.controller.filename
         self.session_list_w = self.query_one("#session_list")
         self.session_list_w.border_title = "Avail. Sessions"
-        sessions = await self.controller.get_sessions(TEST)
+        sessions = await self.controller.get_sessions()
         self.session_list_w.add_options(sessions)
        
 
@@ -162,25 +167,24 @@ class MyTextualApp(App[str]):
     # API exposed to the Controller
     # =============================
     
-    def append_log(self, role, line):
-        self.log_w[role].write_line(line)
+    def append_log(self, line):
+        self.log_w.write_line(line)
 
-    def reset_switch(self, role):
-        self.switch_w[role].value = False
-   
-    def clear_metadata_table(self, role):
-        self.metadata_w[role].clear()
+    def reset_switch(self):
+        self.switch_w.value = False
+
+    def clear_phot_info_table(self):
+        self.phot_info_table_w.clear()
         self.metadata_w[role].loading = False
 
-    def update_metadata_table(self, role, metadata):
-        self.query_one("#tst_metadata").loading = False
-        self.metadata_w[role].add_rows(metadata.items())
+    def update_phot_info_table(self, phot_info_table):
+        self.phot_info_table_w.add_rows(phot_info_table.items())
 
-    def update_progress(self, role, amount):
-        self.progress_w[role].advance(amount)
+    def update_progress(self, amount):
+        self.progress_w.advance(amount)
 
-    def reset_progress(self, role):
-        self.progress_w[role].progress = 0
+    def reset_progress(self):
+        self.progress_w.progress = 0
 
     def set_start_wavelength(self, value):
         self.start_wave_w.value = str(value)
@@ -224,22 +228,22 @@ class MyTextualApp(App[str]):
     # Capture Tab
     # -----------
 
-    @on(Switch.Changed, "#tst_phot")
+    @on(Switch.Changed, "#detect_phot")
     def tst_switch_pressed(self, event):
         if event.control.value:
-            self.query_one("#tst_metadata").loading = True
-            w = self.run_worker(self.controller.get_info(TEST), exclusive=True)
+            self.query_one("#phot_info_table").loading = True
+            w = self.run_worker(self.controller.get_info(), exclusive=True)
         else:
-            self.clear_metadata_table(TEST)
+            self.clear_phot_info_table()
             self.disable_capture()
 
-    @on(RadioButton.Changed, "#save")
+    @on(RadioButton.Changed, "#save_radio")
     def save_pressed(self, event: Button.Pressed) -> None:
         self.controller.save = event.control.value
 
     @on(Button.Pressed, "#capture_button")
     def start_pressed(self, event: Button.Pressed) -> None:
-        self.controller.start_readings(TEST)
+        self.controller.start_readings()
 
     @on(Button.Pressed, "#export_button")
     def export_pressed(self, event: Button.Pressed) -> None:
@@ -262,7 +266,10 @@ class MyTextualApp(App[str]):
         option = event.control.get_option_at_index(event.option_index)
         self.controller.set_selected_session(option.prompt)
 
-
-    
-
+    @on(RadioSet.Changed, "#roles")
+    def radio_set_changed(self, event: RadioSet.Changed) -> None:
+        if str(event.pressed.label).startswith('Test'):
+            self.controller.role = TEST
+        else:
+            self.controller.role = REF
   
