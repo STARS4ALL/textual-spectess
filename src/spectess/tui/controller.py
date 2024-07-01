@@ -170,6 +170,7 @@ class Controller:
             log.error(line)
             self.view.append_log(role, line)
             self.view.reset_switch(role)
+            self.view.clear_metadata_table(role)
         except Exception as e:
             log.error(e)
         else:

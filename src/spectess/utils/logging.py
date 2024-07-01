@@ -48,8 +48,8 @@ def configure(args):
         log.addHandler(ch)
     # Create a file handler suitable for logrotate usage
     if args.log_file:
-        # fh = logging.handlers.WatchedFileHandler(args.log_file)
-        fh = logging.handlers.TimedRotatingFileHandler(args.log_file, when='midnight', interval=1, backupCount=365)
+        fh = logging.handlers.WatchedFileHandler(args.log_file)
+        #fh = logging.handlers.TimedRotatingFileHandler(args.log_file, when='midnight', interval=1, backupCount=365)
         fh.setFormatter(fmt)
         fh.setLevel(logging.DEBUG)
         log.addHandler(fh)

@@ -170,8 +170,10 @@ class MyTextualApp(App[str]):
    
     def clear_metadata_table(self, role):
         self.metadata_w[role].clear()
+        self.metadata_w[role].loading = False
 
     def update_metadata_table(self, role, metadata):
+        self.query_one("#tst_metadata").loading = False
         self.metadata_w[role].add_rows(metadata.items())
 
     def update_progress(self, role, amount):
@@ -225,6 +227,7 @@ class MyTextualApp(App[str]):
     @on(Switch.Changed, "#tst_phot")
     def tst_switch_pressed(self, event):
         if event.control.value:
+            self.query_one("#tst_metadata").loading = True
             w = self.run_worker(self.controller.get_info(TEST), exclusive=True)
         else:
             self.clear_metadata_table(TEST)
