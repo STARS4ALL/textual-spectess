@@ -19,6 +19,7 @@ from typing import Iterable
 # ---------------
 
 from textual import on, work
+from textual.worker import Worker, WorkerState
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Rule, Checkbox
 from textual.widgets import  TabbedContent, TabPane, Input, RadioSet, RadioButton, Placeholder, Digits, DirectoryTree, OptionList
@@ -93,7 +94,8 @@ class MyTextualApp(App[str]):
                         yield RadioButton("Save samples", id="save_radio", classes="capture_controls")
                         yield Label(self.controller.session_id, id="session_id", classes="capture_controls")
                         yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
-                        yield Digits(self.controller.wavelength, classes="capture_controls", id="cur_wave")
+                        yield Digits('000', classes="capture_controls", id="cur_wave")
+                        yield Button("Reset Wavelength", id="reset_button", classes="capture_controls")
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
                 yield Log(id="log", classes="log")       
@@ -222,6 +224,15 @@ class MyTextualApp(App[str]):
     def action_quit(self):
         self.controller.quit()
 
+    # ------- 
+    # Workers
+    # -------
+
+    def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
+        """Generic handler for all workers spawned by the Textual."""
+        if event.worker.name == "reset_wk" and event.state == WorkerState.SUCCESS:
+            self.controller.wavelength = event.worker.result
+
     # ----------
     # Config Tab
     # ----------
@@ -263,14 +274,20 @@ class MyTextualApp(App[str]):
     def start_pressed(self, event: Button.Pressed) -> None:
         self.controller.start_readings()
 
-    @on(Button.Pressed, "#export_button")
-    def export_pressed(self, event: Button.Pressed) -> None:
-        self.run_worker(self.controller.export_samples(), 
-            exclusive=True)
+    @on(Button.Pressed, "#reset_button")
+    def start_pressed(self, event: Button.Pressed) -> None:
+        self.run_worker(self.controller.get_start_wavelength(), name="reset_wk", exclusive=True)
+
+    
 
     # ----------
     # Export Tab
     # ----------
+
+    @on(Button.Pressed, "#export_button")
+    def export_pressed(self, event: Button.Pressed) -> None:
+        self.run_worker(self.controller.export_samples(), 
+            exclusive=True)
 
     @on(Input.Submitted, "#directory")
     def directory(self, event: Input.Submitted) -> None:

@@ -93,8 +93,15 @@ class Controller:
 
     @property
     def wavelength(self):
+        log.info("getting current wavelength => %d", self._wavelength)
         return str(self._wavelength)
 
+    @wavelength.setter
+    def wavelength(self, value):
+        self._wavelength = int(value)
+        log.info("setting current wavelength to %d", self._wavelength)
+        self.view.set_wavelength(value)
+       
     @property
     def role(self):
         return int(self._role)
@@ -153,13 +160,14 @@ class Controller:
 
     async def set_start_wavelength(self, value):
         log.info("Setting starting wavelength to %s", value)
-        self._wavelength = int(value)
+        #self._wavelength = int(value)
         await self._set_property('calibration', 'wavelength', value)
         self.view.set_wavelength(value)
 
     async def get_start_wavelength(self):
         value = await self._get_property('calibration', 'wavelength')
-        self._wavelength = int(value)
+        log.info("Getting starting wavelength => %s", value)
+        #self._wavelength = int(value)
         return value
 
     async def set_wave_incr(self, value):
