@@ -228,15 +228,18 @@ class MyTextualApp(App[str]):
 
     @on(Input.Submitted, "#nsamples")
     def nsamples(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_nsamples(event.control.value), exclusive=True)
+        self.run_worker(self.controller.set_nsamples(event.control.value), 
+            exclusive=True)
 
     @on(Input.Submitted, "#wavelength")
     def wavelength(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_start_wavelength(event.control.value), exclusive=True)
+        self.run_worker(self.controller.set_start_wavelength(event.control.value), 
+            exclusive=True)
 
     @on(Input.Submitted, "#wave_incr")
     def wave_incr(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_wave_incr(event.control.value), exclusive=True)
+        self.run_worker(self.controller.set_wave_incr(event.control.value), 
+            exclusive=True)
 
     # -----------
     # Capture Tab
@@ -246,7 +249,8 @@ class MyTextualApp(App[str]):
     def tst_switch_pressed(self, event):
         if event.control.value:
             self.query_one("#phot_info_table").loading = True
-            w = self.run_worker(self.controller.get_info(), exclusive=True)
+            w = self.run_worker(self.controller.get_info(), 
+                exclusive=True)
         else:
             self.clear_phot_info_table()
             self.disable_capture()
@@ -261,7 +265,8 @@ class MyTextualApp(App[str]):
 
     @on(Button.Pressed, "#export_button")
     def export_pressed(self, event: Button.Pressed) -> None:
-        self.run_worker(self.controller.export_samples(), exclusive=True)
+        self.run_worker(self.controller.export_samples(), 
+            exclusive=True)
 
     # ----------
     # Export Tab
@@ -278,7 +283,8 @@ class MyTextualApp(App[str]):
     @on(OptionList.OptionSelected, "#session_list")
     def selected_session(self, event: OptionList.OptionSelected) -> None:
         option = event.control.get_option_at_index(event.option_index)
-        self.run_worker(self.controller.set_selected_session(option.prompt), exclusive=True)
+        self.run_worker(self.controller.set_selected_session(option.prompt), 
+            exclusive=True)
 
     @on(RadioSet.Changed, "#roles")
     def radio_set_changed(self, event: RadioSet.Changed) -> None:
