@@ -180,7 +180,7 @@ class Controller:
             log.error(line)
             self.view.append_log(line)
             self.view.reset_switch()
-            self.view.clear_metadata_table()
+            self.view.clear_phot_info_table()
         except Exception as e:
             log.error(e)
         else:

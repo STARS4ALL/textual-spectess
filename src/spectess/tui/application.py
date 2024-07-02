@@ -125,11 +125,10 @@ class MyTextualApp(App[str]):
         # -----------
         # Capture Tab
         # -----------
-        for ident in ("#phot_info_table",):
-            table = self.query_one(ident)
-            table.add_columns(*("Property", "Value"))
-            table.show_cursor = False
-            table.fixed_columns = 2
+        self.phot_into_table_w = self.query_one("#phot_info_table")
+        self.phot_into_table_w.add_columns(*("Property", "Value"))
+        self.phot_into_table_w.show_cursor = False
+        self.phot_into_table_w.fixed_columns = 2
         self.roles_w = self.query_one("#roles")
         self.roles_w.border_title = "Role"
         self.session1_w = self.query_one("#session_id")
@@ -175,7 +174,7 @@ class MyTextualApp(App[str]):
 
     def clear_phot_info_table(self):
         self.phot_info_table_w.clear()
-        self.metadata_w[role].loading = False
+        self.phot_info_table_w.loading = False
 
     def update_phot_info_table(self, phot_info_table):
         self.phot_info_table_w.add_rows(phot_info_table.items())
