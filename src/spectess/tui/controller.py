@@ -128,11 +128,14 @@ class Controller:
         self._directory = PurePath(value)
     
 
-    def set_selected_session(self, value):
+    async def set_selected_session(self, value):
         log.info("Setting selected session at %s", value)
         self._selected_session = int(value)
         self._filename = PurePath(f"spectrum_calib_{value}.csv")
         self.view.set_filename(str(self._filename))
+        self.view.clear_roles_in_session()
+        roles = await self.get_roles_per_session(self._selected_session)
+        self.view.update_roles_in_session(roles)
 
     # ---------------------------
     # Database Config section API
@@ -262,13 +265,21 @@ class Controller:
         #logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
     async def get_sessions(self):
-        role = label(self._role)
         async with self.session_class() as session:
             async with session.begin():
-                q = (select(Samples.session).distinct().join(Samples.photometer)
-                    .where(Samples.role == role)).order_by(Samples.session.desc())
+                q = (select(Samples.session).distinct()
+                    .order_by(Samples.session.desc()))
                 session_ids = (await session.scalars(q)).all()
-                result = tuple( f"{str(item)}_{role}" for item in session_ids)
+                result = tuple(str(item) for item in session_ids)
+        return result
+
+    async def get_roles_per_session(self, session_id):
+        async with self.session_class() as session:
+            async with session.begin():
+                q = (select(Samples.role).distinct()
+                    .where(Samples.session == session_id))
+                roles = (await session.scalars(q)).all()
+                result = tuple(str(item) for item in roles)
         return result
 
     async def export_samples(self):

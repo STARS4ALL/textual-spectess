@@ -20,7 +20,7 @@ from typing import Iterable
 
 from textual import on, work
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Rule
+from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Rule, Checkbox
 from textual.widgets import  TabbedContent, TabPane, Input, RadioSet, RadioButton, Placeholder, Digits, DirectoryTree, OptionList
 
 from textual.containers import Horizontal, Vertical
@@ -103,6 +103,9 @@ class MyTextualApp(App[str]):
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     with Vertical(id="export_controls"):
                         yield OptionList(id="session_list")
+                        with Horizontal(id="session_container"):
+                            yield Checkbox("Reference", id="ref_session", disabled=True)
+                            yield Checkbox("Test", id="tst_session", disabled=True)
                         yield Input(placeholder="Directory", id="directory")
                         yield Input(placeholder="File name", id="filename")
                         yield Button("Export", id="export_button")
@@ -200,6 +203,18 @@ class MyTextualApp(App[str]):
     def set_filename(self, value):
         self.filename_w.value = value
 
+    def clear_roles_in_session(self):
+        self.query_one('#tst_session').value = False
+        self.query_one('#ref_session').value = False
+
+    def update_roles_in_session(self, roles):
+        for role in roles:
+            if role == label(TEST):
+                self.query_one('#tst_session').value = True
+            if role == label(REF):
+                self.query_one('#ref_session').value = True
+       
+
     # ======================
     # Textual event handlers
     # ======================
@@ -263,7 +278,7 @@ class MyTextualApp(App[str]):
     @on(OptionList.OptionSelected, "#session_list")
     def selected_session(self, event: OptionList.OptionSelected) -> None:
         option = event.control.get_option_at_index(event.option_index)
-        self.controller.set_selected_session(option.prompt)
+        self.run_worker(self.controller.set_selected_session(option.prompt), exclusive=True)
 
     @on(RadioSet.Changed, "#roles")
     def radio_set_changed(self, event: RadioSet.Changed) -> None:
