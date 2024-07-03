@@ -28,7 +28,18 @@ Input {
 	height: 1fr;
 	width: 1fr;
 	border: solid yellow;
+
 }
+
+.log {
+    border: double yellow;
+    height: 1fr;
+}
+
+#cur_wave {
+	row-span: 2;
+}
+
 
 #capture_controls_container {
 	layout: grid;
@@ -44,15 +55,10 @@ Input {
 	 height: 5fr;
 }
 
-
 #log {
 	background: darkblue;
 }
 
-.log {
-    border: double yellow;
-    height: 1fr;
-}
 
 /* =========== */
 /* CONFIG PANE */

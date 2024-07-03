@@ -101,6 +101,17 @@ class Controller:
         self._wavelength = int(value)
         log.info("setting current wavelength to %d", self._wavelength)
         self.view.set_wavelength(value)
+
+    @property
+    def filter(self):
+        if self._wavelength < 570:
+            result = 'BG38'
+        elif 570 <= self._wavelength < 860:
+            result = 'OG570'
+        else:
+            result = 'RG830'
+        log.info("getting current filter => %s",result)
+        return result
        
     @property
     def role(self):
@@ -134,7 +145,11 @@ class Controller:
     def directory(self, value):
         self._directory = PurePath(value)
     
+    # ---------------------------
+    # Database Config section API
+    # ---------------------------
 
+    # property getter/setter do not support async
     async def set_selected_session(self, value):
         log.info("Setting selected session at %s", value)
         self._selected_session = int(value)
@@ -144,9 +159,23 @@ class Controller:
         roles = await self.get_roles_per_session(self._selected_session)
         self.view.update_roles_in_session(roles)
 
-    # ---------------------------
-    # Database Config section API
-    # ---------------------------
+    async def get_sessions(self):
+        async with self.session_class() as session:
+            async with session.begin():
+                q = (select(Samples.session).distinct()
+                    .order_by(Samples.session.desc()))
+                session_ids = (await session.scalars(q)).all()
+                result = tuple(str(item) for item in session_ids)
+        return result
+
+    async def get_roles_per_session(self, session_id):
+        async with self.session_class() as session:
+            async with session.begin():
+                q = (select(Samples.role).distinct()
+                    .where(Samples.session == session_id))
+                roles = (await session.scalars(q)).all()
+                result = tuple(str(item) for item in roles)
+        return result
 
     async def set_nsamples(self, value):
         log.info("Setting nsamples to %s", value)
@@ -160,14 +189,12 @@ class Controller:
 
     async def set_start_wavelength(self, value):
         log.info("Setting starting wavelength to %s", value)
-        #self._wavelength = int(value)
         await self._set_property('calibration', 'wavelength', value)
         self.view.set_wavelength(value)
 
     async def get_start_wavelength(self):
         value = await self._get_property('calibration', 'wavelength')
         log.info("Getting starting wavelength => %s", value)
-        #self._wavelength = int(value)
         return value
 
     async def set_wave_incr(self, value):
@@ -272,23 +299,7 @@ class Controller:
                 session.add(dbphot)
         #logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-    async def get_sessions(self):
-        async with self.session_class() as session:
-            async with session.begin():
-                q = (select(Samples.session).distinct()
-                    .order_by(Samples.session.desc()))
-                session_ids = (await session.scalars(q)).all()
-                result = tuple(str(item) for item in session_ids)
-        return result
-
-    async def get_roles_per_session(self, session_id):
-        async with self.session_class() as session:
-            async with session.begin():
-                q = (select(Samples.role).distinct()
-                    .where(Samples.session == session_id))
-                roles = (await session.scalars(q)).all()
-                result = tuple(str(item) for item in roles)
-        return result
+    
 
     async def export_samples(self):
         HEADERS = ("name", "mac", "model", "sensor", "freq_offset", "session","role","wavelength","seq_number","timestamp","frequency","box_temperature")

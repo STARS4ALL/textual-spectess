@@ -86,7 +86,7 @@ class MyTextualApp(App[str]):
             with TabPane("Capture", id="capture_tab"):
                 with Horizontal(id="capture_div"):
                     with Vertical(id="capture_controls_container"):
-                        yield Button("Capture", id="capture_button", classes="capture_controls", disabled=True)
+                        yield Button("Reset Wavelength", id="reset_button", classes="capture_controls")
                         yield Switch(id="detect_phot", classes="capture_controls")
                         with RadioSet(id="roles", classes="capture_controls"):
                             yield RadioButton("Ref. Phot.", id="ref_role")
@@ -94,8 +94,9 @@ class MyTextualApp(App[str]):
                         yield RadioButton("Save samples", id="save_radio", classes="capture_controls")
                         yield Label(self.controller.session_id, id="session_id", classes="capture_controls")
                         yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
+                        yield Label(self.controller.filter, id="cur_filter", classes="capture_controls")
                         yield Digits('000', classes="capture_controls", id="cur_wave")
-                        yield Button("Reset Wavelength", id="reset_button", classes="capture_controls")
+                        yield Button("Capture", id="capture_button", classes="capture_controls", disabled=True)
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
                 yield Log(id="log", classes="log")       
@@ -145,8 +146,13 @@ class MyTextualApp(App[str]):
         self.switch_w.border_title = 'OFF / ON'
         self.phot_info_table_w = self.query_one("#phot_info_table")
         self.cur_wave_w = self.query_one("#cur_wave")
-        self.cur_wave_w.update(f"{self.controller.wavelength:>8}")
         self.cur_wave_w.border_title = "Cur. Wavelength (nm)"
+        wavelength = await self.controller.get_start_wavelength()
+        self.controller.wavelength = wavelength
+        self.cur_wave_w.update(f"{wavelength:>8}")
+        self.cur_filter_w = self.query_one("#cur_filter")
+        self.cur_filter_w.border_title = "Current Filter"
+
         self.save_w = self.query_one("#save_radio")
         self.save_w.value = self.controller.save
         self.progress_w = self.query_one("#progress_phot")

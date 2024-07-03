@@ -26,3 +26,7 @@ Prepare migrations with alembic
 ```bash
 alembic init -t async src/migrations
 ```
+
+BG38  from 350 nm to 569 nm
+OG570 from 570 nm to 859 nm
+RG830 from 860 nm to 1050 nm
