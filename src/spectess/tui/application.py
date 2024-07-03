@@ -22,7 +22,7 @@ from textual import on, work
 from textual.worker import Worker, WorkerState
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Rule, Checkbox
-from textual.widgets import  TabbedContent, TabPane, Input, RadioSet, RadioButton, Placeholder, Digits, DirectoryTree, OptionList
+from textual.widgets import  TabbedContent, TabPane, Tabs, Input, RadioSet, RadioButton, Placeholder, Digits, DirectoryTree, OptionList
 
 from textual.containers import Horizontal, Vertical
 
@@ -83,7 +83,7 @@ class MyTextualApp(App[str]):
                 yield Input(placeholder="Starting Wavelength [nm]", id="wavelength", type="integer")
                 yield Input(placeholder="Wavelength increment [nm]", id="wave_incr", type="integer")
                 yield Input(placeholder="Number of samples", id="nsamples", type="integer")
-            with TabPane("Capture", id="capture"):
+            with TabPane("Capture", id="capture_tab"):
                 with Horizontal(id="capture_div"):
                     with Vertical(id="capture_controls_container"):
                         yield Button("Capture", id="capture_button", classes="capture_controls", disabled=True)
@@ -99,7 +99,7 @@ class MyTextualApp(App[str]):
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
                 yield Log(id="log", classes="log")       
-            with TabPane("Export", id="export"):
+            with TabPane("Export", id="export_tab"):
                 with Horizontal():
                     yield FilteredDirectoryTree(os.getcwd())
                     yield Rule(orientation="vertical", classes="vertical_separator")
@@ -224,10 +224,10 @@ class MyTextualApp(App[str]):
     def action_quit(self):
         self.controller.quit()
 
-    # ------- 
-    # Workers
-    # -------
-
+    # ----------------------------
+    # Workers single event handler
+    # ----------------------------
+    
     def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
         """Generic handler for all workers spawned by the Textual."""
         if event.worker.name == "reset_wk" and event.state == WorkerState.SUCCESS:
@@ -275,7 +275,7 @@ class MyTextualApp(App[str]):
         self.controller.start_readings()
 
     @on(Button.Pressed, "#reset_button")
-    def start_pressed(self, event: Button.Pressed) -> None:
+    def reset_pressed(self, event: Button.Pressed) -> None:
         self.run_worker(self.controller.get_start_wavelength(), name="reset_wk", exclusive=True)
 
     
@@ -283,6 +283,12 @@ class MyTextualApp(App[str]):
     # ----------
     # Export Tab
     # ----------
+
+    @on(Tabs.TabActivated, "#export_tab")
+    async def export_activated(self, event: Button.Pressed) -> None:
+        # This sis sub-optimal, but it makes no difference in practice
+        sessions = await self.controller.get_sessions()
+        self.session_list_w.add_options(sessions)
 
     @on(Button.Pressed, "#export_button")
     def export_pressed(self, event: Button.Pressed) -> None:
