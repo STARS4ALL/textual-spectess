@@ -33,6 +33,7 @@ from textual.containers import Horizontal, Vertical
 # -------------
 
 from ..photometer import REF, TEST, label
+from .widgets.label import WritableLabel
 
 # ----------------
 # Module constants
@@ -96,7 +97,7 @@ class MyTextualApp(App[str]):
                         yield RadioButton("Save samples", id="save_radio", classes="capture_controls")
                         yield Label(self.controller.session_id, id="session_id", classes="capture_controls")
                         yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
-                        yield Label(self.controller.filter, id="cur_filter", classes="capture_controls")
+                        yield WritableLabel(self.controller.filter, id="cur_filter", classes="capture_controls")
                         yield Digits('000', classes="capture_controls", id="cur_wave")
                         yield Button("Capture", id="capture_button", classes="capture_controls", disabled=True)
                     yield Rule(orientation="vertical", classes="vertical_separator")
