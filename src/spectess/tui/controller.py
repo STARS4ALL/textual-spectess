@@ -101,6 +101,8 @@ class Controller:
         self._wavelength = int(value)
         log.info("setting current wavelength to %d", self._wavelength)
         self.view.set_wavelength(value)
+        filt = self.filter
+        self.view.set_filter(filt)
 
     @property
     def filter(self):

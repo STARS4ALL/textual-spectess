@@ -18,6 +18,8 @@ from typing import Iterable
 # Textual imports
 # ---------------
 
+from rich.text import Text
+
 from textual import on, work
 from textual.worker import Worker, WorkerState
 from textual.app import App, ComposeResult
@@ -115,19 +117,16 @@ class MyTextualApp(App[str]):
         yield Footer()
     
 
-    async def on_mount(self) -> None:
+    def on_mount(self) -> None:
         # ----------
         # Config Tab
         # ----------
         self.start_wave_w = self.query_one("#wavelength")
-       
         self.start_wave_w.border_title = "Starting Wavelength (nm)"
         self.wave_incr_w = self.query_one("#wave_incr")
-        
         self.wave_incr_w.border_title = "Wavelength Increment (nm)"
         self.nsamples_w = self.query_one("#nsamples")
         self.nsamples_w.border_title = "Number of samples"
-        
         # -----------
         # Capture Tab
         # -----------
@@ -147,11 +146,8 @@ class MyTextualApp(App[str]):
         self.phot_info_table_w = self.query_one("#phot_info_table")
         self.cur_wave_w = self.query_one("#cur_wave")
         self.cur_wave_w.border_title = "Cur. Wavelength (nm)"
-       
-        self.cur_wave_w.update(f"{wavelength:>8}")
         self.cur_filter_w = self.query_one("#cur_filter")
         self.cur_filter_w.border_title = "Current Filter"
-
         self.save_w = self.query_one("#save_radio")
         self.save_w.value = self.controller.save
         self.progress_w = self.query_one("#progress_phot")
@@ -167,21 +163,25 @@ class MyTextualApp(App[str]):
         self.filename_w.value = self.controller.filename
         self.session_list_w = self.query_one("#session_list")
         self.session_list_w.border_title = "Avail. Sessions"
-        await self._on_mount_async()
+        # Finish asynchronous initialization in a separate worker
+        self.run_worker(self._async_initialization(), exclusive=True)
+
     
     # --------------   
     # Helper methods
     # --------------
 
-    async def _on_mount_async(self):
+    async def _async_initialization(self):
         self.session_list_w.add_options(await self.controller.get_sessions())
         nsamples = await self.controller.get_nsamples()
-        self.progress_w.total = int(nsamples)
-        self.nsamples_w.value = nsamples
         start_wave = await self.controller.get_start_wavelength()
+        wave_incr = await self.controller.get_wave_incr()
         self.controller.wavelength = start_wave
         self.start_wave_w.value = start_wave
-        self.wave_incr_w.value = await self.controller.get_wave_incr()
+        self.cur_wave_w.update(f"{start_wave:>8}")
+        self.wave_incr_w.value = wave_incr
+        self.progress_w.total = int(nsamples)
+        self.nsamples_w.value = nsamples
         
 
     # =============================
@@ -212,6 +212,11 @@ class MyTextualApp(App[str]):
 
     def set_wavelength(self, value):
         self.cur_wave_w.update(f"{value:>8}")
+
+    def set_filter(self, value):
+        log.info("CUCU")
+        text = Text(value, justify="center")
+        text.stylize("bold magenta", 0, 6)
 
     def enable_capture(self):
         self.capture_button_w.disabled = False
