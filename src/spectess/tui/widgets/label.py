@@ -20,7 +20,7 @@ from textual.widgets import Label
 
 
 class WritableLabel(Label):
-    """A label to display the percentage status of the progress bar."""
+    """Writable label at run time label"""
 
     DEFAULT_CSS = """
     WritableLabel {
