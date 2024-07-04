@@ -17,7 +17,8 @@ from typing import Optional
 from textual.reactive import reactive
 from textual.app import RenderResult, ComposeResult
 from textual.widget import Widget
-from textual.widgets import Digits
+from textual.widgets import Label, Digits, Rule
+from textual.containers import Horizontal
 
 from .label import WritableLabel
 
@@ -32,6 +33,10 @@ class Wavelength(Widget):
         border: solid yellow;
     }
 
+    Wavelength Label {
+    }
+
+
     Wavelength WritableLabel {
     }
 
@@ -44,9 +49,11 @@ class Wavelength(Widget):
     wavelength: reactive[str] = reactive[str]('350')
     _filter: reactive[str] = reactive[str]('BG38')
 
-    def compose(self) -> ComposeResult:  
-        yield WritableLabel()
-        yield Digits()
+    def compose(self) -> ComposeResult:
+        with Horizontal():
+            yield Label('Current Filter:')
+            yield WritableLabel()
+        yield Digits('000')
 
     def compute__filter(self) -> str:
         w = int(self.wavelength)
@@ -59,5 +66,5 @@ class Wavelength(Widget):
         return result
 
     def _on_mount(self) -> None:
+        self.border_title = "Current Wavelength (nm)"
         self.query_one(WritableLabel).data_bind(value=Wavelength._filter)
-        self.query_one(Digits).data_bind(value=Wavelength.wavelength)
