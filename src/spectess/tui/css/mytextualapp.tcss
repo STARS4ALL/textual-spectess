@@ -44,15 +44,15 @@ Input {
 #capture_controls_container {
 	layout: grid;
     grid-size: 2;
+    width: 3fr;
 }
 
 #detect_phot {
-    width: 0.6fr;
+    width: 0.4fr;
 }
 
 #phot_info_table {
-	 width: 1fr;
-	 height: 5fr;
+	
 }
 
 #log {

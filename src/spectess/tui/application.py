@@ -89,7 +89,7 @@ class MyTextualApp(App[str]):
             with TabPane("Capture", id="capture_tab"):
                 with Horizontal(id="capture_div"):
                     with Vertical(id="capture_controls_container"):
-                        yield Button("Reset Wavelength", id="reset_button", classes="capture_controls")
+                        yield Button("Reset Wavelength", id="reset_button", variant="primary")
                         yield Switch(id="detect_phot", classes="capture_controls")
                         with RadioSet(id="roles", classes="capture_controls"):
                             yield RadioButton("Ref. Phot.", id="ref_role")
@@ -99,7 +99,7 @@ class MyTextualApp(App[str]):
                         yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
                         yield WritableLabel(self.controller.filter, id="cur_filter", classes="capture_controls")
                         yield Digits('000', classes="capture_controls", id="cur_wave")
-                        yield Button("Capture", id="capture_button", classes="capture_controls", disabled=True)
+                        yield Button("Capture", id="capture_button", variant="primary", disabled=True)
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
                 yield Log(id="log", classes="log")       
@@ -149,6 +149,7 @@ class MyTextualApp(App[str]):
         self.cur_wave_w.border_title = "Cur. Wavelength (nm)"
         self.cur_filter_w = self.query_one("#cur_filter")
         self.cur_filter_w.border_title = "Current Filter"
+        self.cur_filter_w.value = self.controller.filter
         self.save_w = self.query_one("#save_radio")
         self.save_w.value = self.controller.save
         self.progress_w = self.query_one("#progress_phot")
