@@ -16,6 +16,7 @@ from typing import Optional
 
 from textual.reactive import reactive
 from textual.app import RenderResult, ComposeResult
+from textual.geometry import clamp
 from textual.widget import Widget
 from textual.widgets import Label, Digits, Rule
 from textual.containers import Horizontal
@@ -53,14 +54,13 @@ class Wavelength(Widget):
             yield WritableLabel()
         yield Digits('000')
 
-    def validate_wavelength(self, value: str) -> str:
-        w = int(value)
-        return str(min(max(350,w),1050))
+    def _validate_wavelength(self, value: str) -> str:
+        return str(clamp(int(value),350,1050))
 
-    def watch_wavelength(self):
-        self.query_one(Digits).update(self.wavelength)
+    def _watch_wavelength(self, old_wave: str, new_wave: str):
+        self.query_one(Digits).update(new_wave)
 
-    def compute_filter(self) -> str:
+    def _compute_filter(self) -> str:
         w = int(self.wavelength)
         if w < 570:
             result = 'BG38'
