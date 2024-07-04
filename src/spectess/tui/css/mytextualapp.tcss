@@ -52,7 +52,7 @@ Input {
 }
 
 #phot_info_table {
-	
+	height: 1fr;
 }
 
 #log {
