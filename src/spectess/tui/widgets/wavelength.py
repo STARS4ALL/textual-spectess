@@ -45,7 +45,7 @@ class Wavelength(Widget):
     """
 
     wavelength: reactive[str] = reactive[str]('350')
-    _filter: reactive[str] = reactive[str]('BG38')
+    filter: reactive[str] = reactive[str]('BG38')
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -60,7 +60,7 @@ class Wavelength(Widget):
     def watch_wavelength(self):
         self.query_one(Digits).update(self.wavelength)
 
-    def compute__filter(self) -> str:
+    def compute_filter(self) -> str:
         w = int(self.wavelength)
         if w < 570:
             result = 'BG38'
@@ -72,5 +72,5 @@ class Wavelength(Widget):
 
     def _on_mount(self) -> None:
         self.border_title = "Current Wavelength (nm)"
-        self.query_one(WritableLabel).data_bind(value=Wavelength._filter)
+        self.query_one(WritableLabel).data_bind(value=Wavelength.filter)
      

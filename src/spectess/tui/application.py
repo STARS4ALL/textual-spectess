@@ -33,7 +33,7 @@ from textual.containers import Horizontal, Vertical
 # -------------
 
 from ..photometer import REF, TEST, label
-from .widgets.label import WritableLabel
+from .widgets.wavelength import Wavelength
 
 # ----------------
 # Module constants
@@ -97,8 +97,9 @@ class MyTextualApp(App[str]):
                         yield RadioButton("Save samples", id="save_radio", classes="capture_controls")
                         yield Label(self.controller.session_id, id="session_id", classes="capture_controls")
                         yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
-                        yield WritableLabel(self.controller.filter, id="cur_filter", classes="capture_controls")
-                        yield Digits('000', classes="capture_controls", id="cur_wave")
+                        yield Wavelength(id="cur_wave")
+                        #yield WritableLabel(self.controller.filter, id="cur_filter", classes="capture_controls")
+                        #yield Digits('000', classes="capture_controls", id="cur_wave")
                         yield Button("Capture", id="capture_button", variant="primary", disabled=True)
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
@@ -146,10 +147,6 @@ class MyTextualApp(App[str]):
         self.switch_w.border_title = 'OFF / ON'
         self.phot_info_table_w = self.query_one("#phot_info_table")
         self.cur_wave_w = self.query_one("#cur_wave")
-        self.cur_wave_w.border_title = "Cur. Wavelength (nm)"
-        self.cur_filter_w = self.query_one("#cur_filter")
-        self.cur_filter_w.border_title = "Current Filter"
-        self.cur_filter_w.value = self.controller.filter
         self.save_w = self.query_one("#save_radio")
         self.save_w.value = self.controller.save
         self.progress_w = self.query_one("#progress_phot")
@@ -180,7 +177,7 @@ class MyTextualApp(App[str]):
         wave_incr = await self.controller.get_wave_incr()
         self.controller.wavelength = start_wave
         self.start_wave_w.value = start_wave
-        self.cur_wave_w.update(f"{start_wave:>8}")
+        self.cur_wave_w.wavelength = f"{start_wave:>8}"
         self.wave_incr_w.value = wave_incr
         self.progress_w.total = int(nsamples)
         self.nsamples_w.value = nsamples
@@ -213,7 +210,10 @@ class MyTextualApp(App[str]):
         self.start_wave_w.value = str(value)
 
     def set_wavelength(self, value):
-        self.cur_wave_w.update(f"{value:>8}")
+        self.cur_wave_w.wavelength = f"{value:>8}"
+
+    def get_filter(self):
+        return self.cur_wave_w.filter 
 
     def set_filter(self, value):
         log.info("CUCU")

@@ -86,6 +86,7 @@ class Samples(Model):
     freq:       Mapped[float]
     temp_box:   Mapped[float]
     wave:       Mapped[int]
+    filter:     Mapped[str] = mapped_column(String(6)) 
 
     __table_args__ = (
         UniqueConstraint('tstamp', 'role', name='uq_photometer_t_tstamp_role'),

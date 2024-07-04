@@ -101,20 +101,8 @@ class Controller:
         self._wavelength = int(value)
         log.info("setting current wavelength to %d", self._wavelength)
         self.view.set_wavelength(value)
-        filt = self.filter
-        self.view.set_filter(filt)
+      
 
-    @property
-    def filter(self):
-        if self._wavelength < 570:
-            result = 'BG38'
-        elif 570 <= self._wavelength < 860:
-            result = 'OG570'
-        else:
-            result = 'RG830'
-        log.info("getting current filter => %s",result)
-        return result
-       
     @property
     def role(self):
         return int(self._role)
@@ -249,17 +237,18 @@ class Controller:
     async def receive(self):
         '''Receiver consumer coroutine'''
         role = label(self._role)
+        filt = self.view.get_filter()
         log = logging.getLogger(role)
         self.view.reset_progress()
         while len(self.ring) < self._nsamples:
             msg = await self.photometer.queue.get()
             self.ring.append(msg)
-            line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{role}] [{msg.get('seq')}] [{self._wavelength} nm] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
+            line = f"{msg['tstamp'].strftime('%Y-%m-%d %H:%M:%S')} [{role}] [{filt}] [{msg.get('seq')}] [{self._wavelength} nm] f={msg['freq']} Hz, tbox={msg['tamb']}, tsky={msg['tsky']}"
             self.view.append_log(line)
             self.view.update_progress(1)
         self.producer.cancel()
         median, mean, stdev = self.ring.statistics()
-        line = f"[{role}] median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
+        line = f"[{role}] [{filt}] median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
         self.view.append_log(line)
         if not self._save:
             self.view.append_log("WARNING: not saving samples") 
@@ -279,6 +268,7 @@ class Controller:
     async def save_samples(self):
         #logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         role = label(self._role)
+        filt = self.view.get_filter()
         async with self.session_class() as session:
             async with session.begin():
                 q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
@@ -296,6 +286,7 @@ class Controller:
                             freq = s['freq'],
                             temp_box = s['tamb'],
                             wave = self._wavelength,
+                            filter = filt,
                         )
                     )
                 session.add(dbphot)
@@ -304,7 +295,7 @@ class Controller:
     
 
     async def export_samples(self):
-        HEADERS = ("name", "mac", "model", "sensor", "freq_offset", "session","role","wavelength","seq_number","timestamp","frequency","box_temperature")
+        HEADERS = ("name", "mac", "model", "sensor", "freq_offset", "session","role","wavelength","filter","seq_number","timestamp","frequency","box_temperature")
         async with self.session_class() as session:
             async with session.begin():
                 q = (select(Samples).join(Samples.photometer.and_(DbPhotometer.mac == self._cur_mac))
@@ -318,7 +309,7 @@ class Controller:
                 for sample in samples:
                     phot = await sample.awaitable_attrs.photometer # Asunchronous relationship reload
                     row = [phot.name, phot.mac, phot.model, phot.sensor, phot.freq_offset, 
-                        sample.session, sample.role, sample.wave, sample.seq, sample.tstamp,  sample.freq, sample.temp_box]
+                        sample.session, sample.role, sample.wave, sample.filter, sample.seq, sample.tstamp,  sample.freq, sample.temp_box]
                     writer.writerow(row)
        
 
