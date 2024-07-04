@@ -162,5 +162,5 @@ cython_debug/
 # My own stuff
 *.db
 _version.py
-test*.py
+test*.*
 *.csv
