@@ -25,7 +25,7 @@ class WritableLabel(Label):
     DEFAULT_CSS = """
     WritableLabel {
         width: 5;
-        content-align-horizontal: right;
+        text-align: right;
     }
     """
 
@@ -33,4 +33,4 @@ class WritableLabel(Label):
     """The updated value."""
 
     def render(self) -> RenderResult:
-        return "" if self.value is None else self.value
+        return "" if self.value is None else f"[b]{self.value}[/b]"

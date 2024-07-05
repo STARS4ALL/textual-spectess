@@ -54,7 +54,7 @@ async def populate(async_session: async_sessionmaker[AsyncSessionClass]) -> None
         async with session.begin():
             session.add(Config(section="database", prop="uuid", value=str(uuid.uuid4())))
             session.add(Config(section="calibration", prop="author", value="Rafael González"))
-            session.add(Config(section="calibration", prop="nsamples", value=5))
+            session.add(Config(section="calibration", prop="nsamples", value=11))
             session.add(Config(section="calibration", prop="wavelength", value=350))
             session.add(Config(section="calibration", prop="wave_incr", value=5))
     
