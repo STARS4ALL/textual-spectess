@@ -94,6 +94,7 @@ class MyTextualApp(App[str]):
         self.progress_w = None
         self.graph_w = None
         self.SUB_TITLE = description
+        log.info("Trying to import Textual CSS from %s", self.CSS_PATH)
         super().__init__()
 
     def compose(self) -> ComposeResult:
