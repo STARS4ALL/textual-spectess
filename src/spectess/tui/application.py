@@ -45,6 +45,7 @@ from .widgets.about import About
 
 PKG = 'spectess.tui.css'
 CSS_FILE = 'mytextualapp.tcss'
+# Outside the Python packages
 CSS_PATH =  os.path.join(os.getcwd(), CSS_FILE) 
 
 # -----------------------
@@ -54,6 +55,7 @@ CSS_PATH =  os.path.join(os.getcwd(), CSS_FILE)
 # get the root logger
 log = logging.getLogger(__name__)
 
+# Instead of a long, embeddded string, we read it as a Python resource
 if sys.version_info[1] < 11:
     from pkg_resources import resource_string as resource_bytes
     DEFAULT_CSS = resource_bytes(PKG, CSS_FILE).decode('utf-8')
@@ -264,7 +266,7 @@ class MyTextualApp(App[str]):
         self.controller.quit()
 
     def action_about(self):
-        self.push_screen(About())
+        self.push_screen(About(self.TITLE))
 
     # ----------------------------
     # Workers single event handler

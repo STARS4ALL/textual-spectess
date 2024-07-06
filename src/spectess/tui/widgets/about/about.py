@@ -47,11 +47,18 @@ class About(ModalScreen):
     DEFAULT_CSS = """
     """
 
+    def __init__(self, title=""):
+        self._title = title
+        super().__init__()
+
     def compose(self) -> ComposeResult:
         with Container():
             yield Label(f"Version: {__version__}")
             yield Markdown(ack)
             yield Button('Dismiss')
+
+    def on_mount(self) -> None:
+        self.query_one(Container).border_title = self._title
 
     @on(Button.Pressed)
     def start_pressed(self, event: Button.Pressed) -> None:
