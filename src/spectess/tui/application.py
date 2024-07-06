@@ -34,6 +34,7 @@ from textual.containers import Horizontal, Vertical
 
 from ..photometer import REF, TEST, label
 from .widgets.wavelength import Wavelength
+from .widgets.about import About
 
 # ----------------
 # Module constants
@@ -61,7 +62,8 @@ class MyTextualApp(App[str]):
 
     # Seems the bindings are for the Footer widget
     BINDINGS = [
-        ("q", "quit", "Quit Application")
+        ("q", "quit", "Quit"),
+        ("a", "about", "About")
     ]
 
     CSS_PATH = [
@@ -247,6 +249,9 @@ class MyTextualApp(App[str]):
 
     def action_quit(self):
         self.controller.quit()
+
+    def action_about(self):
+        self.push_screen(About())
 
     # ----------------------------
     # Workers single event handler
