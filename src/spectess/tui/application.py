@@ -8,6 +8,9 @@
 # System wide imports
 # -------------------
 
+import sys
+
+
 import os
 import logging
 
@@ -40,12 +43,23 @@ from .widgets.about import About
 # Module constants
 # ----------------
 
+PKG = 'spectess.tui.css'
+CSS_FILE = 'mytextualapp.tcss'
+CSS_PATH =  os.path.join(os.getcwd(), CSS_FILE) 
+
 # -----------------------
 # Module global variables
 # -----------------------
 
 # get the root logger
 log = logging.getLogger(__name__)
+
+if sys.version_info[1] < 11:
+    from pkg_resources import resource_string as resource_bytes
+    DEFAULT_CSS = resource_bytes(PKG, CSS_FILE).decode('utf-8')
+else:
+    from importlib_resources import files
+    DEFAULT_CSS = files(PKG).joinpath(CSS_FILE).read_text()
 
 # -------------------
 # Auxiliary functions
@@ -66,9 +80,8 @@ class MyTextualApp(App[str]):
         ("a", "about", "About")
     ]
 
-    CSS_PATH = [
-        os.path.join("css", "mytextualapp.tcss"),
-    ]
+    DEFAULT_CSS = DEFAULT_CSS
+    CSS_PATH = CSS_PATH
 
     def __init__(self, controller, description):
         self.controller = controller

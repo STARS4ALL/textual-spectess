@@ -45,26 +45,6 @@ from spectess import __version__
 class About(ModalScreen):
 
     DEFAULT_CSS = """
-    About {
-        align: center middle;
-        width: auto;
-        height: auto;
-    }
-    About > Container {
-        width: auto;
-        height: auto;
-        margin: 1;
-        background: $panel;
-        border:  double yellow;
-    }
-    About > Container > Label {
-        margin: 1;
-    }
-    About > Container > Button {
-         align: center middle;
-         width: auto;
-        height: auto;
-    }
     """
 
     def compose(self) -> ComposeResult:
