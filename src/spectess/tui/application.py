@@ -46,6 +46,7 @@ from .widgets.wavelength import Wavelength
 # Module constants
 # ----------------
 
+
 CSS_PKG = 'spectess.tui.resources.css'
 CSS_FILE = 'mytextualapp.tcss'
 # Outside the Python packages
