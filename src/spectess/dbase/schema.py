@@ -22,6 +22,8 @@ from datetime import datetime
 
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession as AsyncSessionClass
+from lica.textual.argparse import args_parser
+from lica.textual.logging import configure
 
 from lica.sqlalchemy.asyncio.dbase import url, engine, Model, AsyncSession
 
@@ -30,8 +32,6 @@ from lica.sqlalchemy.asyncio.dbase import url, engine, Model, AsyncSession
 # -------------
 
 from .. import __version__
-from ..utils.argsparse import args_parser
-from ..utils.logging import configure
 from .model import Photometer, Samples, Config
 
 # ----------------

@@ -31,15 +31,7 @@ import collections
 # Module global variables
 # -----------------------
 
-# get the root logger
-log = logging.getLogger()
-
-# -------------------
-# Auxiliary functions
-# -------------------
-
-def magnitude(zp, fo, f):
-    return zp - 2.5*math.log10(f - fo)
+log = logging.getLogger(__name__)
 
 # ------- 
 # Classes

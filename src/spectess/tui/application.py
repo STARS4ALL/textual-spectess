@@ -53,7 +53,7 @@ CSS_FILE = 'mytextualapp.tcss'
 CSS_PATH =  os.path.join(os.getcwd(), CSS_FILE)
 
 ABOUT_PKG = 'spectess.tui.resources.about'
-ABOUT_RES = 'ack.md'
+ABOUT_RES = 'description.md'
 
 # -----------------------
 # Module global variables
