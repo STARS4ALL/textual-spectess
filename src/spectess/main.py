@@ -15,12 +15,13 @@ import logging
 # Third party imports
 # -------------------
 
+from lica.sqlalchemy.asyncio.dbase import engine, AsyncSession
+
 #--------------
 # local imports
 # -------------
 
 from . import __version__
-from .dbase import engine, AsyncSession
 from .utils.argsparse import args_parser
 from .utils.logging import configure
 from .tui.application import MyTextualApp

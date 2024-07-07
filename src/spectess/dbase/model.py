@@ -13,18 +13,14 @@ import logging
 from typing import Optional, List
 from datetime import datetime
 
-# ------------------
-# SQLAlchemy imports
-# -------------------
+# ---------------------
+# Third party libraries
+# ---------------------
 
 from sqlalchemy import String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-#--------------
-# local imports
-# -------------
-
-from . import Model
+from lica.sqlalchemy.asyncio.dbase import Model
 
 # ----------------
 # Module constants
