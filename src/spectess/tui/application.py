@@ -31,22 +31,28 @@ from textual.widgets import  TabbedContent, TabPane, Tabs, Input, RadioSet, Radi
 
 from textual.containers import Horizontal, Vertical
 
+
+from lica.textual.widgets.about import About
+
 #--------------
 # local imports
 # -------------
 
+from .. import __version__
 from ..photometer import REF, TEST, label
 from .widgets.wavelength import Wavelength
-from .widgets.about import About
 
 # ----------------
 # Module constants
 # ----------------
 
-PKG = 'spectess.tui.css'
+CSS_PKG = 'spectess.tui.resources.css'
 CSS_FILE = 'mytextualapp.tcss'
 # Outside the Python packages
-CSS_PATH =  os.path.join(os.getcwd(), CSS_FILE) 
+CSS_PATH =  os.path.join(os.getcwd(), CSS_FILE)
+
+ABOUT_PKG = 'spectess.tui.resources.about'
+ABOUT_RES = 'ack.md'
 
 # -----------------------
 # Module global variables
@@ -58,10 +64,12 @@ log = logging.getLogger(__name__)
 # Instead of a long, embeddded string, we read it as a Python resource
 if sys.version_info[1] < 11:
     from pkg_resources import resource_string as resource_bytes
-    DEFAULT_CSS = resource_bytes(PKG, CSS_FILE).decode('utf-8')
+    DEFAULT_CSS = resource_bytes(CSS_PKG, CSS_FILE).decode('utf-8')
+    ABOUT = resource_bytes(ABOUT_PKG, ABOUT_RES).decode('utf-8')
 else:
     from importlib_resources import files
-    DEFAULT_CSS = files(PKG).joinpath(CSS_FILE).read_text()
+    DEFAULT_CSS = files(CSS_PKG).joinpath(CSS_FILE).read_text()
+    ABOUT = files(ABOUT_PKG).joinpath(ABOUT_RES).read_text()
 
 # -------------------
 # Auxiliary functions
@@ -265,7 +273,9 @@ class MyTextualApp(App[str]):
         self.controller.quit()
 
     def action_about(self):
-        self.push_screen(About(self.TITLE))
+        self.push_screen(About(self.TITLE, 
+            version=__version__, 
+            description=ABOUT))
 
     # ----------------------------
     # Workers single event handler
