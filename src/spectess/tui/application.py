@@ -116,8 +116,6 @@ class MyTextualApp(App[str]):
                         yield Label(str(self.controller.session_id), id="session_id", classes="capture_controls")
                         yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
                         yield Wavelength(id="cur_wave")
-                        #yield WritableLabel(self.controller.filter, id="cur_filter", classes="capture_controls")
-                        #yield Digits('000', classes="capture_controls", id="cur_wave")
                         yield Button("Capture", id="capture_button", variant="primary", disabled=True)
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
