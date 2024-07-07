@@ -23,7 +23,7 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession as AsyncSessionClass
 from lica.textual.argparse import args_parser
-from lica.textual.logging import configure
+from lica.textual.logging import configure_log
 
 from lica.sqlalchemy.asyncio.dbase import url, engine, Model, AsyncSession
 
