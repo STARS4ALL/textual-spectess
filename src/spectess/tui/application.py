@@ -113,7 +113,7 @@ class MyTextualApp(App[str]):
                             yield RadioButton("Ref. Phot.", id="ref_role")
                             yield RadioButton("Test Phot.", id="tst_role", value=True)
                         yield RadioButton("Save samples", id="save_radio", classes="capture_controls")
-                        yield Label(self.controller.session_id, id="session_id", classes="capture_controls")
+                        yield Label(str(self.controller.session_id), id="session_id", classes="capture_controls")
                         yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
                         yield Wavelength(id="cur_wave")
                         #yield WritableLabel(self.controller.filter, id="cur_filter", classes="capture_controls")

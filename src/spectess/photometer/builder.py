@@ -15,13 +15,14 @@ import asyncio
 # Third party libraries
 # ---------------------
 
+from lica.misc import chop
+
 # ------------
 # Own packages
 # ------------
 
 from . import TEST, REF, label, endpoint, TESSW, TAS, TESSP
 
-from ..utils.misc import chop
 from .protocol.transport import UDPTransport, TCPTransport, SerialTransport
 from .protocol.payload   import JSONPayload, OldPayload
 from .protocol.photinfo  import HTMLInfo, DBaseInfo

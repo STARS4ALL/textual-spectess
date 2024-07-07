@@ -22,6 +22,8 @@ from pathlib import PurePath
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
+from lica.misc import measurements_session_id
+
 #--------------
 # local imports
 # -------------
@@ -31,7 +33,6 @@ from ..photometer.builder import PhotometerBuilder
 
 from ..ring import RingBuffer 
 from ..dbase.model import Config, Samples, Photometer as DbPhotometer
-from ..utils.misc import measurements_session_id
 
 # ----------------
 # Module constants

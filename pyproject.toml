@@ -36,7 +36,9 @@ dependencies = [
   #'exceptiongroups', # For Python < 3.11 when using TaskGroups
   #'asyncstdlib', # async counterparts such as aenumerate()
   # Textual TUI
-  'textual-dev'
+  'textual-dev',
+  # My own library of Python utilities
+  'lica@git+https://github.com/guaix-ucm/lica@main',
 ]
 
 [project.optional-dependencies]
