@@ -16,14 +16,15 @@ import logging
 # -------------------
 
 from lica.sqlalchemy.asyncio.dbase import engine, AsyncSession
+from lica.textual.argparse import args_parser
+from lica.textual.logging import configure
 
 #--------------
 # local imports
 # -------------
 
 from . import __version__
-from .utils.argsparse import args_parser
-from .utils.logging import configure
+
 from .tui.application import MyTextualApp
 from .tui.controller import Controller
 
