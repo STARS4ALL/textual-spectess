@@ -22,7 +22,7 @@ from textual.widgets import Label, Digits, Rule
 from textual.containers import Horizontal
 
 
-from .label import WritableLabel
+from lica.textual.widgets.label import WritableLabel
 
 class Wavelength(Widget):
     """LICA Wavelength display widget"""
