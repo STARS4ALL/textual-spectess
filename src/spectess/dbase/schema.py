@@ -16,11 +16,14 @@ import logging
 from typing import Optional, List
 from datetime import datetime
 
-# ------------------
-# SQLAlchemy imports
-# -------------------
+# ---------------------
+# Third party libraries
+# ---------------------
+
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession as AsyncSessionClass
+
+from lica.sqlalchemy.asyncio.dbase import url, engine, Model, AsyncSession
 
 #--------------
 # local imports
@@ -29,8 +32,6 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession as AsyncSess
 from .. import __version__
 from ..utils.argsparse import args_parser
 from ..utils.logging import configure
-
-from . import url, engine, Model, AsyncSession
 from .model import Photometer, Samples, Config
 
 # ----------------
