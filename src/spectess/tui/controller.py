@@ -23,13 +23,12 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 from lica.misc import measurements_session_id
+from lica.asyncio.photometer import REF, TEST, TESSW, label
+from lica.asyncio.photometer.builder import PhotometerBuilder
 
 #--------------
 # local imports
 # -------------
-
-from ..photometer import TESSW, REF, TEST, label
-from ..photometer.builder import PhotometerBuilder
 
 from ..ring import RingBuffer 
 from ..dbase.model import Config, Samples, Photometer as DbPhotometer

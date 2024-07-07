@@ -33,13 +33,13 @@ from textual.containers import Horizontal, Vertical
 
 
 from lica.textual.widgets.about import About
+from lica.asyncio.photometer import REF, TEST, label
 
 #--------------
 # local imports
 # -------------
 
 from .. import __version__
-from ..photometer import REF, TEST, label
 from .widgets.wavelength import Wavelength
 
 # ----------------
