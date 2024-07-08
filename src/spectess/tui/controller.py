@@ -200,11 +200,11 @@ class Controller:
     async def get_info(self):
         '''Get Photometer Info'''
         role = self._role
-        log = logging.getLogger(str(role))
+        log = logging.getLogger(role.tag())
         try:
             info = await self.photometer.get_info()
         except asyncio.exceptions.TimeoutError:
-            line = f"Failed contacting {str(role)} photometer"
+            line = f"Failed contacting {role.tag()} photometer"
             log.error(line)
             self.view.append_log(line)
             self.view.reset_switch()
@@ -236,7 +236,7 @@ class Controller:
 
     async def receive(self):
         '''Receiver consumer coroutine'''
-        role = str(self._role)
+        role = self._role.tag()
         filt = self.view.get_filter()
         log = logging.getLogger(role)
         self.view.reset_progress()
@@ -268,7 +268,7 @@ class Controller:
 
     async def save_samples(self):
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-        role = str(self._role)
+        role = self._role.tag()
         filt = self.view.get_filter()
         async with self.session_class() as session:
             async with session.begin():
