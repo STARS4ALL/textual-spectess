@@ -31,7 +31,7 @@ from lica.asyncio.photometer.builder import PhotometerBuilder
 # -------------
 
 from ..ring import RingBuffer 
-from ..dbase.model import Config, Samples, Photometer as DbPhotometer
+from ..dbase.model import Config, Sample, Photometer as DbPhotometer
 
 # ----------------
 # Module constants
@@ -152,8 +152,8 @@ class Controller:
     async def get_sessions(self):
         async with self.session_class() as session:
             async with session.begin():
-                q = (select(Samples.session).distinct()
-                    .order_by(Samples.session.desc()))
+                q = (select(Sample.session).distinct()
+                    .order_by(Sample.session.desc()))
                 session_ids = (await session.scalars(q)).all()
                 result = tuple(str(item) for item in session_ids)
         return result
@@ -161,8 +161,8 @@ class Controller:
     async def get_roles_per_session(self, session_id):
         async with self.session_class() as session:
             async with session.begin():
-                q = (select(Samples.role).distinct()
-                    .where(Samples.session == session_id))
+                q = (select(Sample.role).distinct()
+                    .where(Sample.session == session_id))
                 roles = (await session.scalars(q)).all()
                 result = tuple(str(item) for item in roles)
         return result
@@ -277,7 +277,7 @@ class Controller:
                 while len(self.ring) > 0:
                     s = self.ring.pop()
                     samples.append(
-                        Samples(
+                        Sample(
                             tstamp = s['tstamp'],
                             role = role,
                             session = self._meas_session,
@@ -298,9 +298,9 @@ class Controller:
         HEADERS = ("name", "mac", "model", "sensor", "freq_offset", "session","role","wavelength","filter","seq_number","timestamp","frequency","box_temperature")
         async with self.session_class() as session:
             async with session.begin():
-                q = (select(Samples).join(Samples.photometer.and_(DbPhotometer.mac == self._cur_mac))
-                    .where(Samples.session == self._selected_session)
-                    .order_by(Samples.wave, Samples.seq))
+                q = (select(Sample).join(Sample.photometer.and_(DbPhotometer.mac == self._cur_mac))
+                    .where(Sample.session == self._selected_session)
+                    .order_by(Sample.wave, Sample.seq))
                 samples = (await session.scalars(q)).all()
                 filename = str(self._directory / self._filename)
             with open(filename, 'w', newline='') as csvfile:

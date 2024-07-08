@@ -23,7 +23,7 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession as AsyncSessionClass
 from lica.textual.argparse import args_parser
-from lica.textual.logging import configure
+from lica.textual.logging import configure_log
 
 from lica.sqlalchemy.asyncio.dbase import url, engine, Model, AsyncSession
 
@@ -32,7 +32,7 @@ from lica.sqlalchemy.asyncio.dbase import url, engine, Model, AsyncSession
 # -------------
 
 from .. import __version__
-from .model import Photometer, Samples, Config
+from .model import Photometer, Sample, Config
 
 # ----------------
 # Module constants
@@ -77,6 +77,6 @@ def main():
         description = "Example SQLAlchemy App"
     )
     args = parser.parse_args(sys.argv[1:])
-    configure(args)
+    configure_log(args)
     log.info("Creating/Opening schema %s", url)
     asyncio.run(schema())
