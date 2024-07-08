@@ -33,7 +33,7 @@ from textual.containers import Horizontal, Vertical
 
 
 from lica.textual.widgets.about import About
-from lica.asyncio.photometer import REF, TEST, label
+from lica.asyncio.photometer import Role, Model
 
 #--------------
 # local imports
@@ -260,9 +260,9 @@ class MyTextualApp(App[str]):
 
     def update_roles_in_session(self, roles):
         for role in roles:
-            if role == label(TEST):
+            if role is Role.TEST:
                 self.query_one('#tst_session').value = True
-            if role == label(REF):
+            if role is Role.REF:
                 self.query_one('#ref_session').value = True
        
 
@@ -366,7 +366,7 @@ class MyTextualApp(App[str]):
     @on(RadioSet.Changed, "#roles")
     def radio_set_changed(self, event: RadioSet.Changed) -> None:
         if str(event.pressed.label).startswith('Test'):
-            self.controller.role = TEST
+            self.controller.role = Role.TEST
         else:
-            self.controller.role = REF
+            self.controller.role = Role.REF
   

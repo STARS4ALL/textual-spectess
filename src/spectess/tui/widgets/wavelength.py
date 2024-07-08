@@ -7,7 +7,7 @@
 # -------------------------
 # Python standrad libraries
 # -------------------------
-
+from enum import Enum, IntEnum
 from typing import Optional
 
 # ---------------
@@ -23,6 +23,19 @@ from textual.containers import Horizontal
 
 
 from lica.textual.widgets.label import WritableLabel
+
+
+class WaveLimit(IntEnum):
+    MIN = 350
+    MAX = 1050
+
+class Filter(Enum):
+    BG38 = "BG38"
+    OG570 = "OG570"
+    RG830 = "RG830"
+
+    def __str__(self):
+        return f"{self.value}"
 
 class Wavelength(Widget):
     """LICA Wavelength display widget"""
@@ -45,8 +58,8 @@ class Wavelength(Widget):
     }
     """
 
-    wavelength: reactive[str] = reactive[str]('350')
-    filter: reactive[str] = reactive[str]('BG38')
+    wavelength: reactive[str] = reactive[str](str(WaveLimit.MIN.value))
+    filter: reactive[Filter] = reactive[Filter](Filter.BG38)
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -55,19 +68,19 @@ class Wavelength(Widget):
         yield Digits('000')
 
     def _validate_wavelength(self, value: str) -> str:
-        return str(clamp(int(value),350,1050))
+        return clamp(int(value), WaveLimit.MIN, WaveLimit.MAX)
 
     def _watch_wavelength(self, old_wave: str, new_wave: str):
-        self.query_one(Digits).update(new_wave)
+        self.query_one(Digits).update(str(new_wave))
 
-    def _compute_filter(self) -> str:
+    def _compute_filter(self) -> Filter:
         w = int(self.wavelength)
         if w < 570:
-            result = 'BG38'
+            result = Filter.BG38
         elif 570 <= w < 860:
-            result = 'OG570'
+            result =  Filter.OG570
         else:
-            result = 'RG830'
+            result = Filter.RG830
         return result
 
     def _on_mount(self) -> None:

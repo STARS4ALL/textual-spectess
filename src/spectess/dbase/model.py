@@ -63,13 +63,13 @@ class Photometer(Model):
 
 
     # This is not a real column, it s meant for the ORM
-    samples: Mapped[List['Samples']] = relationship(back_populates="photometer")
+    samples: Mapped[List['Sample']] = relationship(back_populates="photometer")
 
     def __repr__(self) -> str:
         return f"TESS(id={self.id!r}, name={self.name!r}, mac={self.mac!r})"
    
 
-class Samples(Model):
+class Sample(Model):
     __tablename__ = "samples_t"
 
     id:         Mapped[int] = mapped_column(primary_key=True)
