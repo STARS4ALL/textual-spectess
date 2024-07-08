@@ -23,7 +23,7 @@ from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 
 from lica.misc import measurements_session_id
-from lica.asyncio.photometer import REF, TEST, TESSW, label
+from lica.asyncio.photometer import Role, Model
 from lica.asyncio.photometer.builder import PhotometerBuilder
 
 #--------------
@@ -63,10 +63,10 @@ class Controller:
         self.quit_event =  None
         builder = PhotometerBuilder()
         # Although we use TEST / REF roles, we always build TEST like Photometer objects
-        self.photometer = builder.build(TESSW, TEST)
+        self.photometer = builder.build(Model.TESSW, Role.TEST)
         self.engine = engine
         self.session_class = session_class
-        self._role = TEST
+        self._role = Role.TEST
         self._nsamples = 0
         self._wavelength = 0
         self._wave_incr = 0
@@ -104,12 +104,12 @@ class Controller:
       
 
     @property
-    def role(self):
-        return int(self._role)
+    def role(self) -> Role:
+        return self._role
 
     @role.setter
-    def role(self, value):
-        self._role = int(value)
+    def role(self, value: Role) -> None: 
+        self._role = value
 
     @property
     def save(self):
@@ -200,11 +200,11 @@ class Controller:
     async def get_info(self):
         '''Get Photometer Info'''
         role = self._role
-        log = logging.getLogger(label(role))
+        log = logging.getLogger(str(role))
         try:
             info = await self.photometer.get_info()
         except asyncio.exceptions.TimeoutError:
-            line = f"Failed contacting {label(role)} photometer"
+            line = f"Failed contacting {str(role)} photometer"
             log.error(line)
             self.view.append_log(line)
             self.view.reset_switch()
@@ -236,7 +236,7 @@ class Controller:
 
     async def receive(self):
         '''Receiver consumer coroutine'''
-        role = label(self._role)
+        role = str(self._role)
         filt = self.view.get_filter()
         log = logging.getLogger(role)
         self.view.reset_progress()
@@ -255,6 +255,7 @@ class Controller:
         else:
             await self.save_samples()
             self._wavelength += self._wave_incr
+            log.info("Increasing wavelength to %d", self._wavelength)
             self.view.set_wavelength(self._wavelength)
                     
 
@@ -266,8 +267,8 @@ class Controller:
 
 
     async def save_samples(self):
-        #logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-        role = label(self._role)
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        role = str(self._role)
         filt = self.view.get_filter()
         async with self.session_class() as session:
             async with session.begin():
@@ -286,11 +287,11 @@ class Controller:
                             freq = s['freq'],
                             temp_box = s['tamb'],
                             wave = self._wavelength,
-                            filter = filt,
+                            filter = str(filt),
                         )
                     )
                 session.add(dbphot)
-        #logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
     
 
