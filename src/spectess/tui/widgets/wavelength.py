@@ -68,7 +68,7 @@ class Wavelength(Widget):
         yield Digits('000')
 
     def _validate_wavelength(self, value: str) -> str:
-        return clamp(int(value), WaveLimit.MIN.value, WaveLimit.MAX.value)
+        return clamp(int(value), WaveLimit.MIN, WaveLimit.MAX)
 
     def _watch_wavelength(self, old_wave: str, new_wave: str):
         self.query_one(Digits).update(str(new_wave))
