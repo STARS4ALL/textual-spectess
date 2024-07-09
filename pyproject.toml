@@ -25,6 +25,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Atmospheric Science",
 ]
 dependencies = [
+  'typing-extensions', # Self for Python < 3.11
   'python-decouple',  # Get info from enviromental variables
   # Async Database stuff
   'SQLAlchemy[asyncio]',
