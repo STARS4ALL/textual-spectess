@@ -43,8 +43,7 @@ from .model import Photometer, Sample, Config
 # -----------------------
 
 # get the module logger
-log = logging.getLogger(__name__)
-logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+log = logging.getLogger(__name__.split('.')[-1])
 
 # -------------------
 # Auxiliary functions
@@ -78,5 +77,10 @@ def main():
     )
     args = parser.parse_args(sys.argv[1:])
     configure_log(args)
-    log.info("Creating/Opening schema %s", url)
+    if args.verbose:
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+        logging.getLogger("aiosqlite").setLevel(logging.INFO)
+    else:
+        logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+    log.info("Creating new schema for %s", url)
     asyncio.run(schema())
