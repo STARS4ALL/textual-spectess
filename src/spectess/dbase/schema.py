@@ -23,7 +23,7 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession as AsyncSessionClass
 from lica.textual.argparse import args_parser
-from lica.textual.logging import configure_log
+from lica.textual.logging import configure_logging
 
 from lica.sqlalchemy.asyncio.dbase import url, engine, Model, AsyncSession
 
@@ -76,7 +76,7 @@ def main():
         description = "Example SQLAlchemy App"
     )
     args = parser.parse_args(sys.argv[1:])
-    configure_log(args)
+    configure_logging(args)
     if args.verbose:
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         logging.getLogger("aiosqlite").setLevel(logging.INFO)
