@@ -29,6 +29,7 @@ class WaveLimit(IntEnum):
     MIN = 350
     MAX = 1050
 
+
 class Filter(Enum):
     BG38 = "BG38"
     OG570 = "OG570"
@@ -37,10 +38,10 @@ class Filter(Enum):
     def __str__(self):
         return f"{self.value}"
 
+
 class Wavelength(Widget):
     """LICA Wavelength display widget"""
 
-    
     DEFAULT_CSS = """
     Wavelength {
         layout: horizontal;
@@ -78,7 +79,7 @@ class Wavelength(Widget):
         if w < 570:
             result = Filter.BG38
         elif 570 <= w < 860:
-            result =  Filter.OG570
+            result = Filter.OG570
         else:
             result = Filter.RG830
         return result
@@ -86,4 +87,3 @@ class Wavelength(Widget):
     def _on_mount(self) -> None:
         self.border_title = "Current Wavelength (nm)"
         self.query_one(WritableLabel).data_bind(value=Wavelength.filter)
-     
