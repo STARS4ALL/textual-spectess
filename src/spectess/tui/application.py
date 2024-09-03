@@ -68,7 +68,7 @@ if sys.version_info[1] < 11:
     DEFAULT_CSS = resource_bytes(CSS_PKG, CSS_FILE).decode('utf-8')
     ABOUT = resource_bytes(ABOUT_PKG, ABOUT_RES).decode('utf-8')
 else:
-    from importlib_resources import files
+    from importlib.resources import files
     DEFAULT_CSS = files(CSS_PKG).joinpath(CSS_FILE).read_text()
     ABOUT = files(ABOUT_PKG).joinpath(ABOUT_RES).read_text()
 
