@@ -1,14 +1,10 @@
-[build-system]
-requires = ["setuptools >= 45", "wheel", "setuptools_scm[toml]>=6.2"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "textual-spectess"
 dynamic = ["version"]
 description = "Tool to acquire TESS-W sensor readings for spectral response calibration, written in Textual"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 authors = [
     {name = "Rafael González", email = "rafael08@ucm.es"},
 ]
@@ -25,8 +21,10 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Atmospheric Science",
 ]
 dependencies = [
-  'typing-extensions', # Self for Python < 3.11
-  'python-decouple',  # Get info from enviromental variables
+  'typing-extensions',
+  # Self for Python < 3.11
+  'python-decouple',
+  # Get info from enviromental variables
   # Async Database stuff
   'SQLAlchemy[asyncio]',
   'alembic',
@@ -36,15 +34,11 @@ dependencies = [
   'aiohttp',
   #'exceptiongroups', # For Python < 3.11 when using TaskGroups
   #'asyncstdlib', # async counterparts such as aenumerate()
+  # My own library of Python utilities
+  #'lica@git+https://github.com/guaix-ucm/lica@main',
   # Textual TUI
   'textual-dev',
-  # My own library of Python utilities
-  'lica@git+https://github.com/guaix-ucm/lica@main',
-]
-
-[project.optional-dependencies]
-test = [
-    "pytest>=6",
+  "lica",
 ]
 
 [project.urls]
@@ -52,9 +46,12 @@ Homepage = "https://github.com/astrorafael/textual-spectess"
 Repository = "https://github.com/astrorafael/textual-spectess.git"
 
 [project.scripts]
-
 spectess = "spectess.main:main"
 schema = "spectess.dbase.schema:main"
+
+[build-system]
+requires = ["setuptools >= 45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
 
 # pyproject.toml
 # Automatically generates a _version-py file from with Git information
@@ -76,3 +73,11 @@ script-files = [
 # Needed for Textual CSS files
 [tool.setuptools.package-data]
 "spectess.tui.css" = ["*.tcss"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.3",
+]
+
+[tool.uv.sources]
+lica = { git = "https://github.com/guaix-ucm/lica", tag = "1.0.0" }
