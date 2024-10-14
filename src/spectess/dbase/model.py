@@ -4,7 +4,7 @@
 # See the LICENSE file for details
 # ----------------------------------------------------------------------
 
-#--------------------
+# --------------------
 # System wide imports
 # -------------------
 
@@ -37,6 +37,7 @@ log = logging.getLogger(__name__)
 # Data Model, declarative ORM style
 # ---------------------------------
 
+
 class Config(Model):
 
     __tablename__ = "config_t"
@@ -61,13 +62,12 @@ class Photometer(Model):
     zero_point:     Mapped[float]
     freq_offset:    Mapped[float]
 
-
     # This is not a real column, it s meant for the ORM
     samples: Mapped[List['Sample']] = relationship(back_populates="photometer")
 
     def __repr__(self) -> str:
         return f"TESS(id={self.id!r}, name={self.name!r}, mac={self.mac!r})"
-   
+
 
 class Sample(Model):
     __tablename__ = "samples_t"
@@ -82,7 +82,7 @@ class Sample(Model):
     freq:       Mapped[float]
     temp_box:   Mapped[float]
     wave:       Mapped[int]
-    filter:     Mapped[str] = mapped_column(String(6)) 
+    filter:     Mapped[str] = mapped_column(String(6))
 
     __table_args__ = (
         UniqueConstraint('tstamp', 'role', name='uq_photometer_t_tstamp_role'),
@@ -93,4 +93,3 @@ class Sample(Model):
 
     def __repr__(self) -> str:
         return f"Sample(id={self.id!r}, freq={self.freq!r}, mag={self.mag!r}, seq={self.seq!r}, wave={self.wave})"
-

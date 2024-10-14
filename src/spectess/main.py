@@ -17,7 +17,7 @@ import logging
 
 from lica.sqlalchemy.asyncio.dbase import engine, AsyncSession
 from lica.textual.argparse import args_parser
-from lica.textual.logging import configure_log
+from lica.textual.logging import configure_logging
 
 #--------------
 # local imports
@@ -53,7 +53,7 @@ def main():
         description = DESCRIPTION
     )
     args = parser.parse_args(sys.argv[1:])
-    configure_log(args)
+    configure_logging(args)
     try:
         controller = Controller(engine, AsyncSession)
         tui = MyTextualApp(controller, DESCRIPTION)
