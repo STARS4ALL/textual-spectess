@@ -4,7 +4,7 @@
 # See the LICENSE file for details
 # ----------------------------------------------------------------------
 
-#--------------------
+# --------------------
 # System wide imports
 # -------------------
 
@@ -26,11 +26,11 @@ from lica.misc import measurements_session_id
 from lica.asyncio.photometer import Role, Model
 from lica.asyncio.photometer.builder import PhotometerBuilder
 
-#--------------
+# --------------
 # local imports
 # -------------
 
-from ..ring import RingBuffer 
+from ..ring import RingBuffer
 from ..dbase.model import Config, Sample, Photometer as DbPhotometer
 
 # ----------------
@@ -53,6 +53,7 @@ log = logging.getLogger(__name__)
 # Classes
 # -------
 
+
 class Controller:
 
     def __init__(self, engine, session_class):
@@ -60,7 +61,7 @@ class Controller:
         self.producer = None
         self.consumer = None
         self.ring = None
-        self.quit_event =  None
+        self.quit_event = None
         builder = PhotometerBuilder()
         # Although we use TEST / REF roles, we always build TEST like Photometer objects
         self.photometer = builder.build(Model.TESSW, Role.TEST)
@@ -75,7 +76,6 @@ class Controller:
         self._filename = PurePath(f"spectrum_calib_{self._meas_session}.csv")
         self._directory = PurePath(os.getcwd())
         self._selected_session = None
-       
 
     # ========================================
     # Public API to be used by the Textual TUI
@@ -101,14 +101,13 @@ class Controller:
         self._wavelength = int(value)
         log.info("setting current wavelength to %d", self._wavelength)
         self.view.set_wavelength(value)
-      
 
     @property
     def role(self) -> Role:
         return self._role
 
     @role.setter
-    def role(self, value: Role) -> None: 
+    def role(self, value: Role) -> None:
         self._role = value
 
     @property
@@ -134,7 +133,7 @@ class Controller:
     @directory.setter
     def directory(self, value):
         self._directory = PurePath(value)
-    
+
     # ---------------------------
     # Database Config section API
     # ---------------------------
@@ -153,7 +152,7 @@ class Controller:
         async with self.session_class() as session:
             async with session.begin():
                 q = (select(Sample.session).distinct()
-                    .order_by(Sample.session.desc()))
+                     .order_by(Sample.session.desc()))
                 session_ids = (await session.scalars(q)).all()
                 result = tuple(str(item) for item in session_ids)
         return result
@@ -162,7 +161,7 @@ class Controller:
         async with self.session_class() as session:
             async with session.begin():
                 q = (select(Sample.role).distinct()
-                    .where(Sample.session == session_id))
+                     .where(Sample.session == session_id))
                 roles = (await session.scalars(q)).all()
                 result = tuple(str(item) for item in roles)
         return result
@@ -196,7 +195,7 @@ class Controller:
         value = await self._get_property('calibration', 'wave_incr')
         self._wave_incr = int(value)
         return value
-        
+
     async def get_info(self):
         '''Get Photometer Info'''
         role = self._role
@@ -216,23 +215,23 @@ class Controller:
             self.view.update_phot_info_table(info)
             async with self.session_class() as session:
                 async with session.begin():
-                    q = select(DbPhotometer).where(DbPhotometer.mac == info.get('mac'))
+                    q = select(DbPhotometer).where(
+                        DbPhotometer.mac == info.get('mac'))
                     dbphot = (await session.scalars(q)).one_or_none()
                     if not dbphot:
                         session.add(
                             DbPhotometer(
-                                name= info.get('name'), 
-                                mac = info.get('mac'),
-                                sensor = info.get('sensor'),
-                                model = info.get('model'),
-                                firmware = info.get('firmware'),
-                                zero_point = info.get('zp'),
-                                freq_offset = info.get('freq_offset'),
+                                name=info.get('name'),
+                                mac=info.get('mac'),
+                                sensor=info.get('sensor'),
+                                model=info.get('model'),
+                                firmware=info.get('firmware'),
+                                zero_point=info.get('zp'),
+                                freq_offset=info.get('freq_offset'),
                             )
                         )
             self._cur_mac = info.get('mac')
             self.view.enable_capture()
-
 
     async def receive(self):
         '''Receiver consumer coroutine'''
@@ -251,13 +250,12 @@ class Controller:
         line = f"[{role}] [{filt}] median = {median:0.3f} Hz, \u03BC = {mean:0.3f} Hz, \u03C3 = {stdev:0.3f} Hz @ \u03BB = {self._wavelength} nm"
         self.view.append_log(line)
         if not self._save:
-            self.view.append_log("WARNING: not saving samples") 
+            self.view.append_log("WARNING: not saving samples")
         else:
             await self.save_samples()
             self._wavelength += self._wave_incr
             log.info("Increasing wavelength to %d", self._wavelength)
             self.view.set_wavelength(self._wavelength)
-                    
 
     def start_readings(self):
         self.photometer.clear()
@@ -265,71 +263,69 @@ class Controller:
         self.consumer = asyncio.create_task(self.receive())
         self.producer = asyncio.create_task(self.photometer.readings())
 
-
     async def save_samples(self):
         logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
         role = self._role.tag()
         filt = self.view.get_filter()
         async with self.session_class() as session:
             async with session.begin():
-                q = select(DbPhotometer).where(DbPhotometer.mac == self._cur_mac)
+                q = select(DbPhotometer).where(
+                    DbPhotometer.mac == self._cur_mac)
                 dbphot = (await session.scalars(q)).one()
-                samples = await dbphot.awaitable_attrs.samples # Asunchronous relationship reload
+                samples = await dbphot.awaitable_attrs.samples  # Asunchronous relationship reload
                 while len(self.ring) > 0:
                     s = self.ring.pop()
                     samples.append(
                         Sample(
-                            tstamp = s['tstamp'],
-                            role = role,
-                            session = self._meas_session,
-                            seq = s['seq'],
-                            mag = s['mag'],
-                            freq = s['freq'],
-                            temp_box = s['tamb'],
-                            wave = self._wavelength,
-                            filter = str(filt),
+                            tstamp=s['tstamp'],
+                            role=role,
+                            session=self._meas_session,
+                            seq=s['seq'],
+                            mag=s['mag'],
+                            freq=s['freq'],
+                            temp_box=s['tamb'],
+                            wave=self._wavelength,
+                            filter=str(filt),
                         )
                     )
                 session.add(dbphot)
         logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-    
-
     async def export_samples(self):
-        HEADERS = ("name", "mac", "model", "sensor", "freq_offset", "session","role","wavelength","filter","seq_number","timestamp","frequency","box_temperature")
+        HEADERS = ("name", "mac", "model", "sensor", "freq_offset", "session", "role",
+                   "wavelength", "filter", "seq_number", "timestamp", "frequency", "box_temperature")
         async with self.session_class() as session:
             async with session.begin():
                 q = (select(Sample).join(Sample.photometer.and_(DbPhotometer.mac == self._cur_mac))
-                    .where(Sample.session == self._selected_session)
-                    .order_by(Sample.wave, Sample.seq))
+                     .where(Sample.session == self._selected_session)
+                     .order_by(Sample.wave, Sample.seq))
                 samples = (await session.scalars(q)).all()
                 filename = str(self._directory / self._filename)
             with open(filename, 'w', newline='') as csvfile:
                 writer = csv.writer(csvfile, delimiter=';')
                 writer.writerow(HEADERS)
                 for sample in samples:
-                    phot = await sample.awaitable_attrs.photometer # Asunchronous relationship reload
-                    row = [phot.name, phot.mac, phot.model, phot.sensor, phot.freq_offset, 
-                        sample.session, sample.role, sample.wave, sample.filter, sample.seq, sample.tstamp,  sample.freq, sample.temp_box]
+                    phot = await sample.awaitable_attrs.photometer  # Asunchronous relationship reload
+                    row = [phot.name, phot.mac, phot.model, phot.sensor, phot.freq_offset,
+                           sample.session, sample.role, sample.wave, sample.filter, sample.seq, sample.tstamp,  sample.freq, sample.temp_box]
                     writer.writerow(row)
-       
 
     # ======================
     # Private helper methods
     # ======================
-        
+
     async def _get_property(self, section, property):
         async with self.engine.begin() as conn:
-            result = await conn.execute(text("SELECT value FROM config_t WHERE section = :section AND property = :property"), 
-                {"section": section, "property": property}
-            )
+            result = await conn.execute(text("SELECT value FROM config_t WHERE section = :section AND property = :property"),
+                                        {"section": section, "property": property}
+                                        )
             result = result.scalar_one()
         return result
 
-
     async def _set_property(self, section, property, value):
         async with self.engine.begin() as conn:
-            await conn.execute(text("UPDATE config_t SET value = :value WHERE section = :section AND property = :property"), 
-                {"section": section, "property": property , "value": value}
-            )
+            await conn.execute(text("UPDATE config_t SET value = :value WHERE section = :section AND property = :property"),
+                               {"section": section,
+                                   "property": property, "value": value}
+                               )
             await conn.commit()

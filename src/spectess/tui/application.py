@@ -4,7 +4,7 @@
 # See the LICENSE file for details
 # ----------------------------------------------------------------------
 
-#--------------------
+# --------------------
 # System wide imports
 # -------------------
 
@@ -27,7 +27,7 @@ from textual import on, work
 from textual.worker import Worker, WorkerState
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Rule, Checkbox
-from textual.widgets import  TabbedContent, TabPane, Tabs, Input, RadioSet, RadioButton, Placeholder, Digits, DirectoryTree, OptionList
+from textual.widgets import TabbedContent, TabPane, Tabs, Input, RadioSet, RadioButton, Placeholder, Digits, DirectoryTree, OptionList
 
 from textual.containers import Horizontal, Vertical
 
@@ -35,7 +35,7 @@ from textual.containers import Horizontal, Vertical
 from lica.textual.widgets.about import About
 from lica.asyncio.photometer import Role, Model
 
-#--------------
+# --------------
 # local imports
 # -------------
 
@@ -50,7 +50,7 @@ from .widgets.wavelength import Wavelength
 CSS_PKG = 'spectess.tui.resources.css'
 CSS_FILE = 'mytextualapp.tcss'
 # Outside the Python packages
-CSS_PATH =  os.path.join(os.getcwd(), CSS_FILE)
+CSS_PATH = os.path.join(os.getcwd(), CSS_FILE)
 
 ABOUT_PKG = 'spectess.tui.resources.about'
 ABOUT_RES = 'description.md'
@@ -68,7 +68,7 @@ if sys.version_info[1] < 11:
     DEFAULT_CSS = resource_bytes(CSS_PKG, CSS_FILE).decode('utf-8')
     ABOUT = resource_bytes(ABOUT_PKG, ABOUT_RES).decode('utf-8')
 else:
-    from importlib_resources import files
+    from importlib.resources import files
     DEFAULT_CSS = files(CSS_PKG).joinpath(CSS_FILE).read_text()
     ABOUT = files(ABOUT_PKG).joinpath(ABOUT_RES).read_text()
 
@@ -76,9 +76,11 @@ else:
 # Auxiliary functions
 # -------------------
 
+
 class FilteredDirectoryTree(DirectoryTree):
     def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
         return [path for path in paths if path.is_dir() and not path.name.startswith('.')]
+
 
 class MyTextualApp(App[str]):
 
@@ -128,7 +130,7 @@ class MyTextualApp(App[str]):
                         yield Button("Capture", id="capture_button", variant="primary", disabled=True)
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
-                yield Log(id="log", classes="log")       
+                yield Log(id="log", classes="log")
             with TabPane("Export", id="export_tab"):
                 with Horizontal():
                     yield FilteredDirectoryTree(os.getcwd())
@@ -142,7 +144,6 @@ class MyTextualApp(App[str]):
                         yield Input(placeholder="File name", id="filename")
                         yield Button("Export", id="export_button")
         yield Footer()
-    
 
     def on_mount(self) -> None:
         # ----------
@@ -190,8 +191,7 @@ class MyTextualApp(App[str]):
         # Finish asynchronous initialization in a separate worker
         self.run_worker(self._async_initialization(), exclusive=True)
 
-    
-    # --------------   
+    # --------------
     # Helper methods
     # --------------
 
@@ -206,12 +206,11 @@ class MyTextualApp(App[str]):
         self.wave_incr_w.value = wave_incr
         self.progress_w.total = int(nsamples)
         self.nsamples_w.value = nsamples
-        
 
     # =============================
     # API exposed to the Controller
     # =============================
-    
+
     def append_log(self, line):
         self.log_w.write_line(line)
 
@@ -238,7 +237,7 @@ class MyTextualApp(App[str]):
         self.cur_wave_w.wavelength = f"{value:>8}"
 
     def get_filter(self):
-        return self.cur_wave_w.filter 
+        return self.cur_wave_w.filter
 
     def set_filter(self, value):
         log.info("CUCU")
@@ -264,7 +263,6 @@ class MyTextualApp(App[str]):
                 self.query_one('#tst_session').value = True
             if role is Role.REF:
                 self.query_one('#ref_session').value = True
-       
 
     # ======================
     # Textual event handlers
@@ -274,14 +272,14 @@ class MyTextualApp(App[str]):
         self.controller.quit()
 
     def action_about(self):
-        self.push_screen(About(self.TITLE, 
-            version=__version__, 
-            description=ABOUT))
+        self.push_screen(About(self.TITLE,
+                               version=__version__,
+                               description=ABOUT))
 
     # ----------------------------
     # Workers single event handler
     # ----------------------------
-    
+
     def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
         """Generic handler for all workers spawned by the Textual."""
         if event.worker.name == "reset_wk" and event.state == WorkerState.SUCCESS:
@@ -293,18 +291,18 @@ class MyTextualApp(App[str]):
 
     @on(Input.Submitted, "#nsamples")
     def nsamples(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_nsamples(event.control.value), 
-            exclusive=True)
+        self.run_worker(self.controller.set_nsamples(event.control.value),
+                        exclusive=True)
 
     @on(Input.Submitted, "#wavelength")
     def wavelength(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_start_wavelength(event.control.value), 
-            exclusive=True)
+        self.run_worker(self.controller.set_start_wavelength(event.control.value),
+                        exclusive=True)
 
     @on(Input.Submitted, "#wave_incr")
     def wave_incr(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_wave_incr(event.control.value), 
-            exclusive=True)
+        self.run_worker(self.controller.set_wave_incr(event.control.value),
+                        exclusive=True)
 
     # -----------
     # Capture Tab
@@ -314,8 +312,8 @@ class MyTextualApp(App[str]):
     def tst_switch_pressed(self, event):
         if event.control.value:
             self.query_one("#phot_info_table").loading = True
-            w = self.run_worker(self.controller.get_info(), 
-                exclusive=True)
+            w = self.run_worker(self.controller.get_info(),
+                                exclusive=True)
         else:
             self.clear_phot_info_table()
             self.disable_capture()
@@ -330,9 +328,8 @@ class MyTextualApp(App[str]):
 
     @on(Button.Pressed, "#reset_button")
     def reset_pressed(self, event: Button.Pressed) -> None:
-        self.run_worker(self.controller.get_start_wavelength(), name="reset_wk", exclusive=True)
-
-    
+        self.run_worker(self.controller.get_start_wavelength(),
+                        name="reset_wk", exclusive=True)
 
     # ----------
     # Export Tab
@@ -346,8 +343,8 @@ class MyTextualApp(App[str]):
 
     @on(Button.Pressed, "#export_button")
     def export_pressed(self, event: Button.Pressed) -> None:
-        self.run_worker(self.controller.export_samples(), 
-            exclusive=True)
+        self.run_worker(self.controller.export_samples(),
+                        exclusive=True)
 
     @on(Input.Submitted, "#directory")
     def directory(self, event: Input.Submitted) -> None:
@@ -360,8 +357,8 @@ class MyTextualApp(App[str]):
     @on(OptionList.OptionSelected, "#session_list")
     def selected_session(self, event: OptionList.OptionSelected) -> None:
         option = event.control.get_option_at_index(event.option_index)
-        self.run_worker(self.controller.set_selected_session(option.prompt), 
-            exclusive=True)
+        self.run_worker(self.controller.set_selected_session(option.prompt),
+                        exclusive=True)
 
     @on(RadioSet.Changed, "#roles")
     def radio_set_changed(self, event: RadioSet.Changed) -> None:
@@ -369,4 +366,3 @@ class MyTextualApp(App[str]):
             self.controller.role = Role.TEST
         else:
             self.controller.role = Role.REF
-  
