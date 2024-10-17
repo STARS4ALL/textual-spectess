@@ -11,6 +11,7 @@ project := file_stem(justfile_dir())
 local_env := join(justfile_dir(), ".env")
 
 pkg := "textual-spectess"
+module := "spectess"
 
 # list all recipes
 default:
@@ -34,7 +35,7 @@ build:
 publish: build
     twine upload -r pypi dist/*
     uv run --no-project --with {{pkg}} --refresh-package {{pkg}} \
-        -- python -c "from spectess  import __version__; print(__version__)"
+        -- python -c "from {{module}} import __version__; print(__version__)"
 
 # Publish to Test PyPi server
 test-publish: build
@@ -42,7 +43,8 @@ test-publish: build
     uv run --no-project  --with {{pkg}} --refresh-package {{pkg}} \
         --index-url https://test.pypi.org/simple/ \
         --extra-index-url https://pypi.org/simple/ \
-        -- python -c "from spectess import __version__; print(__version__)"
+        -- python -c "from {{module}} import __version__; print(__version__)"
+
 
 # ---------------------------
 # LICA Library handling stuff
