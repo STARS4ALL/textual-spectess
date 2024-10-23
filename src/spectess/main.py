@@ -4,7 +4,7 @@
 # See the LICENSE file for details
 # ----------------------------------------------------------------------
 
-#--------------------
+# --------------------
 # System wide imports
 # -------------------
 
@@ -19,7 +19,7 @@ from lica.sqlalchemy.asyncio.dbase import engine, AsyncSession
 from lica.textual.argparse import args_parser
 from lica.textual.logging import configure_logging
 
-#--------------
+# --------------
 # local imports
 # -------------
 
@@ -45,13 +45,10 @@ log = logging.getLogger()
 # Auxiliary functions
 # -------------------
 
+
 def main():
-    '''The main entry point specified by pyproject.toml'''
-    parser = args_parser(
-        name = __name__,
-        version = __version__,
-        description = DESCRIPTION
-    )
+    """The main entry point specified by pyproject.toml"""
+    parser = args_parser(name=__name__, version=__version__, description=DESCRIPTION)
     args = parser.parse_args(sys.argv[1:])
     configure_logging(args)
     try:

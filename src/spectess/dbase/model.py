@@ -41,12 +41,11 @@ log = logging.getLogger(__name__)
 
 
 class Config(Model):
-
     __tablename__ = "config_t"
 
-    section:   Mapped[str] = mapped_column(String(32), primary_key=True)
-    prop:      Mapped[str] = mapped_column('property', String(255), primary_key=True)
-    value:     Mapped[str] = mapped_column(String(255))
+    section: Mapped[str] = mapped_column(String(32), primary_key=True)
+    prop: Mapped[str] = mapped_column("property", String(255), primary_key=True)
+    value: Mapped[str] = mapped_column(String(255))
 
     def __repr__(self) -> str:
         return f"Config(section={self.section!r}, prop={self.prop!r}, value={self.value!r})"
@@ -55,17 +54,17 @@ class Config(Model):
 class Photometer(Model):
     __tablename__ = "photometer_t"
 
-    id:             Mapped[int] = mapped_column(primary_key=True)
-    name:           Mapped[str] = mapped_column(String(10))
-    mac:            Mapped[str] = mapped_column(String(17), unique=True)
-    sensor:         Mapped[str] = mapped_column(String(12))
-    model:          Mapped[str] = mapped_column(String(8))
-    firmware:       Mapped[str] = mapped_column(String(17))
-    zero_point:     Mapped[float]
-    freq_offset:    Mapped[float]
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(10))
+    mac: Mapped[str] = mapped_column(String(17), unique=True)
+    sensor: Mapped[str] = mapped_column(String(12))
+    model: Mapped[str] = mapped_column(String(8))
+    firmware: Mapped[str] = mapped_column(String(17))
+    zero_point: Mapped[float]
+    freq_offset: Mapped[float]
 
     # This is not a real column, it s meant for the ORM
-    samples: Mapped[list[Sample,...]] = relationship(back_populates="photometer")
+    samples: Mapped[list[Sample, ...]] = relationship(back_populates="photometer")
 
     def __repr__(self) -> str:
         return f"TESS(id={self.id!r}, name={self.name!r}, mac={self.mac!r})"
@@ -74,21 +73,19 @@ class Photometer(Model):
 class Sample(Model):
     __tablename__ = "samples_t"
 
-    id:         Mapped[int] = mapped_column(primary_key=True)
-    phot_id:    Mapped[int] = mapped_column(ForeignKey("photometer_t.id"), index=True)
-    tstamp:     Mapped[datetime]
-    role:       Mapped[str] = mapped_column(String(4))
-    session:    Mapped[int]
-    seq:        Mapped[int]
-    mag:        Mapped[float]
-    freq:       Mapped[float]
-    temp_box:   Mapped[float]
-    wave:       Mapped[int]
-    filter:     Mapped[str] = mapped_column(String(6))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    phot_id: Mapped[int] = mapped_column(ForeignKey("photometer_t.id"), index=True)
+    tstamp: Mapped[datetime]
+    role: Mapped[str] = mapped_column(String(4))
+    session: Mapped[int]
+    seq: Mapped[int]
+    mag: Mapped[float]
+    freq: Mapped[float]
+    temp_box: Mapped[float]
+    wave: Mapped[int]
+    filter: Mapped[str] = mapped_column(String(6))
 
-    __table_args__ = (
-        UniqueConstraint('tstamp', 'role', name='uq_photometer_t_tstamp_role'),
-    )
+    __table_args__ = (UniqueConstraint("tstamp", "role", name="uq_photometer_t_tstamp_role"),)
 
     # This is not a real column, it s meant for the ORM
     photometer: Mapped[Photometer] = relationship(back_populates="samples")

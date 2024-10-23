@@ -41,7 +41,7 @@ from .model import Config
 # -----------------------
 
 # get the module logger
-log = logging.getLogger(__name__.split('.')[-1])
+log = logging.getLogger(__name__.split(".")[-1])
 
 # -------------------
 # Auxiliary functions
@@ -51,16 +51,11 @@ log = logging.getLogger(__name__.split('.')[-1])
 async def populate(async_session: async_sessionmaker[AsyncSessionClass]) -> None:
     async with async_session() as session:
         async with session.begin():
-            session.add(Config(section="database",
-                               prop="uuid", value=str(uuid.uuid4())))
-            session.add(Config(section="calibration",
-                               prop="author", value="Rafael González"))
-            session.add(Config(section="calibration",
-                               prop="nsamples", value=11))
-            session.add(Config(section="calibration",
-                               prop="wavelength", value=350))
-            session.add(Config(section="calibration",
-                               prop="wave_incr", value=5))
+            session.add(Config(section="database", prop="uuid", value=str(uuid.uuid4())))
+            session.add(Config(section="calibration", prop="author", value="Rafael González"))
+            session.add(Config(section="calibration", prop="nsamples", value=11))
+            session.add(Config(section="calibration", prop="wavelength", value=350))
+            session.add(Config(section="calibration", prop="wave_incr", value=5))
 
 
 async def schema() -> None:
@@ -72,12 +67,8 @@ async def schema() -> None:
 
 
 def main():
-    '''The main entry point specified by pyproject.toml'''
-    parser = args_parser(
-        name=__name__,
-        version=__version__,
-        description="Example SQLAlchemy App"
-    )
+    """The main entry point specified by pyproject.toml"""
+    parser = args_parser(name=__name__, version=__version__, description="Example SQLAlchemy App")
     args = parser.parse_args(sys.argv[1:])
     configure_logging(args)
     if args.verbose:

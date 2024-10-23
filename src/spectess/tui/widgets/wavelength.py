@@ -63,9 +63,9 @@ class Wavelength(Widget):
 
     def compose(self) -> ComposeResult:
         with Horizontal():
-            yield Label('Current Filter: ')
+            yield Label("Current Filter: ")
             yield WritableLabel()
-        yield Digits('000')
+        yield Digits("000")
 
     def _validate_wavelength(self, value: str) -> str:
         return clamp(int(value), WaveLimit.MIN, WaveLimit.MAX)

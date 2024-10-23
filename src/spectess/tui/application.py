@@ -24,8 +24,28 @@ from rich.text import Text
 from textual import on
 from textual.worker import Worker, WorkerState
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Switch, ProgressBar, Rule, Checkbox
-from textual.widgets import TabbedContent, TabPane, Tabs, Input, RadioSet, RadioButton, DirectoryTree, OptionList
+from textual.widgets import (
+    Header,
+    Footer,
+    Log,
+    DataTable,
+    Label,
+    Button,
+    Switch,
+    ProgressBar,
+    Rule,
+    Checkbox,
+)
+from textual.widgets import (
+    TabbedContent,
+    TabPane,
+    Tabs,
+    Input,
+    RadioSet,
+    RadioButton,
+    DirectoryTree,
+    OptionList,
+)
 
 from textual.containers import Horizontal, Vertical
 
@@ -44,13 +64,13 @@ from .widgets.wavelength import Wavelength
 # Module constants
 # ----------------
 
-CSS_PKG = 'spectess.tui.resources.css'
-CSS_FILE = 'mytextualapp.tcss'
+CSS_PKG = "spectess.tui.resources.css"
+CSS_FILE = "mytextualapp.tcss"
 # Outside the Python packages
 CSS_PATH = os.path.join(os.getcwd(), CSS_FILE)
 
-ABOUT_PKG = 'spectess.tui.resources.about'
-ABOUT_RES = 'description.md'
+ABOUT_PKG = "spectess.tui.resources.about"
+ABOUT_RES = "description.md"
 
 DEFAULT_CSS = files(CSS_PKG).joinpath(CSS_FILE).read_text()
 ABOUT = files(ABOUT_PKG).joinpath(ABOUT_RES).read_text()
@@ -69,19 +89,15 @@ log = logging.getLogger(__name__)
 
 class FilteredDirectoryTree(DirectoryTree):
     def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
-        return [path for path in paths if path.is_dir() and not path.name.startswith('.')]
+        return [path for path in paths if path.is_dir() and not path.name.startswith(".")]
 
 
 class MyTextualApp(App[str]):
-
     TITLE = "SpecTESS-W"
     SUB_TITLE = "TESS-W Spectra acquisition tool"
 
     # Seems the bindings are for the Footer widget
-    BINDINGS = [
-        ("q", "quit", "Quit"),
-        ("a", "about", "About")
-    ]
+    BINDINGS = [("q", "quit", "Quit"), ("a", "about", "About")]
 
     DEFAULT_CSS = DEFAULT_CSS
     CSS_PATH = CSS_PATH
@@ -113,11 +129,24 @@ class MyTextualApp(App[str]):
                         with RadioSet(id="roles", classes="capture_controls"):
                             yield RadioButton("Ref. Phot.", id="ref_role")
                             yield RadioButton("Test Phot.", id="tst_role", value=True)
-                        yield RadioButton("Save samples", id="save_radio", classes="capture_controls")
-                        yield Label(str(self.controller.session_id), id="session_id", classes="capture_controls")
-                        yield ProgressBar(id="progress_phot", classes="capture_controls", total=100, show_eta=False)
+                        yield RadioButton(
+                            "Save samples", id="save_radio", classes="capture_controls"
+                        )
+                        yield Label(
+                            str(self.controller.session_id),
+                            id="session_id",
+                            classes="capture_controls",
+                        )
+                        yield ProgressBar(
+                            id="progress_phot",
+                            classes="capture_controls",
+                            total=100,
+                            show_eta=False,
+                        )
                         yield Wavelength(id="cur_wave")
-                        yield Button("Capture", id="capture_button", variant="primary", disabled=True)
+                        yield Button(
+                            "Capture", id="capture_button", variant="primary", disabled=True
+                        )
                     yield Rule(orientation="vertical", classes="vertical_separator")
                     yield DataTable(id="phot_info_table")
                 yield Log(id="log", classes="log")
@@ -160,7 +189,7 @@ class MyTextualApp(App[str]):
         self.log_w = self.query_one("#log")
         self.log_w.border_title = "LOG"
         self.switch_w = self.query_one("#detect_phot")
-        self.switch_w.border_title = 'OFF / ON'
+        self.switch_w.border_title = "OFF / ON"
         self.phot_info_table_w = self.query_one("#phot_info_table")
         self.cur_wave_w = self.query_one("#cur_wave")
         self.save_w = self.query_one("#save_radio")
@@ -244,15 +273,15 @@ class MyTextualApp(App[str]):
         self.filename_w.value = value
 
     def clear_roles_in_session(self):
-        self.query_one('#tst_session').value = False
-        self.query_one('#ref_session').value = False
+        self.query_one("#tst_session").value = False
+        self.query_one("#ref_session").value = False
 
     def update_roles_in_session(self, roles):
         for role in roles:
             if role is Role.TEST:
-                self.query_one('#tst_session').value = True
+                self.query_one("#tst_session").value = True
             if role is Role.REF:
-                self.query_one('#ref_session').value = True
+                self.query_one("#ref_session").value = True
 
     # ======================
     # Textual event handlers
@@ -262,9 +291,7 @@ class MyTextualApp(App[str]):
         self.controller.quit()
 
     def action_about(self):
-        self.push_screen(About(self.TITLE,
-                               version=__version__,
-                               description=ABOUT))
+        self.push_screen(About(self.TITLE, version=__version__, description=ABOUT))
 
     # ----------------------------
     # Workers single event handler
@@ -281,18 +308,15 @@ class MyTextualApp(App[str]):
 
     @on(Input.Submitted, "#nsamples")
     def nsamples(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_nsamples(event.control.value),
-                        exclusive=True)
+        self.run_worker(self.controller.set_nsamples(event.control.value), exclusive=True)
 
     @on(Input.Submitted, "#wavelength")
     def wavelength(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_start_wavelength(event.control.value),
-                        exclusive=True)
+        self.run_worker(self.controller.set_start_wavelength(event.control.value), exclusive=True)
 
     @on(Input.Submitted, "#wave_incr")
     def wave_incr(self, event: Input.Submitted) -> None:
-        self.run_worker(self.controller.set_wave_incr(event.control.value),
-                        exclusive=True)
+        self.run_worker(self.controller.set_wave_incr(event.control.value), exclusive=True)
 
     # -----------
     # Capture Tab
@@ -302,8 +326,7 @@ class MyTextualApp(App[str]):
     def tst_switch_pressed(self, event):
         if event.control.value:
             self.query_one("#phot_info_table").loading = True
-            self.run_worker(self.controller.get_info(),
-                                exclusive=True)
+            self.run_worker(self.controller.get_info(), exclusive=True)
         else:
             self.clear_phot_info_table()
             self.disable_capture()
@@ -318,8 +341,7 @@ class MyTextualApp(App[str]):
 
     @on(Button.Pressed, "#reset_button")
     def reset_pressed(self, event: Button.Pressed) -> None:
-        self.run_worker(self.controller.get_start_wavelength(),
-                        name="reset_wk", exclusive=True)
+        self.run_worker(self.controller.get_start_wavelength(), name="reset_wk", exclusive=True)
 
     # ----------
     # Export Tab
@@ -333,8 +355,7 @@ class MyTextualApp(App[str]):
 
     @on(Button.Pressed, "#export_button")
     def export_pressed(self, event: Button.Pressed) -> None:
-        self.run_worker(self.controller.export_samples(),
-                        exclusive=True)
+        self.run_worker(self.controller.export_samples(), exclusive=True)
 
     @on(Input.Submitted, "#directory")
     def directory(self, event: Input.Submitted) -> None:
@@ -347,12 +368,11 @@ class MyTextualApp(App[str]):
     @on(OptionList.OptionSelected, "#session_list")
     def selected_session(self, event: OptionList.OptionSelected) -> None:
         option = event.control.get_option_at_index(event.option_index)
-        self.run_worker(self.controller.set_selected_session(option.prompt),
-                        exclusive=True)
+        self.run_worker(self.controller.set_selected_session(option.prompt), exclusive=True)
 
     @on(RadioSet.Changed, "#roles")
     def radio_set_changed(self, event: RadioSet.Changed) -> None:
-        if str(event.pressed.label).startswith('Test'):
+        if str(event.pressed.label).startswith("Test"):
             self.controller.role = Role.TEST
         else:
             self.controller.role = Role.REF

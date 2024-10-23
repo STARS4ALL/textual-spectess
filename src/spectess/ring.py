@@ -4,7 +4,7 @@
 # See the LICENSE file for details
 # ----------------------------------------------------------------------
 
-#--------------------
+# --------------------
 # System wide imports
 # -------------------
 
@@ -18,7 +18,7 @@ import collections
 # -------------------
 
 
-#--------------
+# --------------
 # local imports
 # -------------
 
@@ -32,12 +32,12 @@ import collections
 
 log = logging.getLogger(__name__)
 
-# ------- 
+# -------
 # Classes
 # -------
 
-class RingBuffer:
 
+class RingBuffer:
     def __init__(self, capacity=75, zp=20.50, fo=0.0):
         self._buffer = collections.deque([], capacity)
         self._zp = zp
@@ -53,15 +53,14 @@ class RingBuffer:
         self._buffer.append(item)
 
     def magnitude(self, f):
-        return self._zp - 2.5*math.log10(f - self._fo)
+        return self._zp - 2.5 * math.log10(f - self._fo)
 
     def frequencies(self):
-        return [item['freq'] for item in self._buffer]
-        
+        return [item["freq"] for item in self._buffer]
+
     def statistics(self):
-        frequencies = [item['freq'] for item in self._buffer]
+        frequencies = [item["freq"] for item in self._buffer]
         median = statistics.median_low(frequencies)
         aver = statistics.fmean(frequencies)
         stdev = statistics.stdev(frequencies, aver)
         return median, aver, stdev
-    
