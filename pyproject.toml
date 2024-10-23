@@ -34,8 +34,6 @@ dependencies = [
   'aiohttp',
   #'exceptiongroups', # For Python < 3.11 when using TaskGroups
   #'asyncstdlib', # async counterparts such as aenumerate()
-  # My own library of Python utilities
-  #'lica@git+https://github.com/guaix-ucm/lica@main',
   # Textual TUI
   'textual-dev',
   "lica[aiosqlalchemy]>=1.0.1",
