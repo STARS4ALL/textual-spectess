@@ -295,7 +295,7 @@ class Controller:
                    "wavelength", "filter", "seq_number", "timestamp", "frequency", "box_temperature")
         async with self.session_class() as session:
             async with session.begin():
-                q = (select(Sample).join(Sample.photometer.and_(DbPhotometer.mac == self._cur_mac))
+                q = (select(Sample).join(Sample.photometer)
                      .where(Sample.session == self._selected_session)
                      .order_by(Sample.wave, Sample.seq))
                 samples = (await session.scalars(q)).all()
