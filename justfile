@@ -71,7 +71,7 @@ lica-rel version="":
     echo "Removing previous LICA dependency"
     uv remove lica || echo "Ignoring non existing LICA library";
     echo "Adding LICA library {{ version }}";
-    uv add --refresh-package lica lica {{ version }};
+    uv add --refresh-package lica lica[aiosqlalchemy] {{ version }};
 
 
 # Backup .env to storage unit

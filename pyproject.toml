@@ -38,7 +38,7 @@ dependencies = [
   #'lica@git+https://github.com/guaix-ucm/lica@main',
   # Textual TUI
   'textual-dev',
-  "lica",
+  "lica[aiosqlalchemy]>=1.0.1",
 ]
 
 [project.urls]
@@ -80,4 +80,3 @@ dev-dependencies = [
 ]
 
 [tool.uv.sources]
-lica = { git = "https://github.com/guaix-ucm/lica", tag = "1.0.0" }

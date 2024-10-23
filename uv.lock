@@ -332,8 +332,20 @@ wheels = [
 
 [[package]]
 name = "lica"
-version = "1.0.0"
-source = { git = "https://github.com/guaix-ucm/lica?tag=1.0.0#74d2311d7715df4113e4c4dfe97c97cfe15c95f2" }
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-decouple" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b1/c7/92c24bdc8ef2dbbd3a39e052e70ddf70c70d9236a25d6a932c1ae4bb71dc/lica-1.0.1.tar.gz", hash = "sha256:51bde991bc457a9b1a47cfeaa9f2e22e1d8bcce90a64e647ae98121c65c42512", size = 50708 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/64/66/13ed81769df7fc5f8d6237823619d7b81450b889f8b6727423d8feaba277/lica-1.0.1-py3-none-any.whl", hash = "sha256:5ac05052405b53e6120264ad503293a4b0c79b7d6facfd0c1c36480d2217c6f0", size = 34618 },
+]
+
+[package.optional-dependencies]
+aiosqlalchemy = [
+    { name = "sqlalchemy", extra = ["asyncio"] },
+]
 
 [[package]]
 name = "linkify-it-py"
@@ -832,14 +844,14 @@ wheels = [
 
 [[package]]
 name = "textual-spectess"
-version = "0.5.1.dev23+g0330701.d20241012"
+version = "0.1.dev124+g9dd43e3.d20241023"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "aioserial" },
     { name = "aiosqlite" },
     { name = "alembic" },
-    { name = "lica" },
+    { name = "lica", extra = ["aiosqlalchemy"] },
     { name = "python-decouple" },
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "textual-dev" },
@@ -857,7 +869,7 @@ requires-dist = [
     { name = "aioserial" },
     { name = "aiosqlite" },
     { name = "alembic" },
-    { name = "lica", git = "https://github.com/guaix-ucm/lica?tag=1.0.0" },
+    { name = "lica", extras = ["aiosqlalchemy"], specifier = ">=1.0.1" },
     { name = "python-decouple" },
     { name = "sqlalchemy", extras = ["asyncio"] },
     { name = "textual-dev" },
