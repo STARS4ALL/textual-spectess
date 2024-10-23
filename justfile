@@ -83,33 +83,20 @@ env-rst drive=def_drive: (check_mnt drive) (env-restore join(drive, project))
 [private]
 check_mnt mnt:
     #!/usr/bin/env bash
-    set -euo pipefail
-    if [[ ! -d  {{ mnt }} ]]; then
-        echo "Drive not mounted: {{ mnt }}"
-        exit 1 
-    fi
+    set -euxo pipefail
+    test -d {{ mnt }} || exit $?
 
 [private]
 env-backup bak_dir:
     #!/usr/bin/env bash
-    set -euo pipefail
-    if [[ ! -f  {{ local_env }} ]]; then
-        echo "Can't backup: {{ local_env }} doesn't exists"
-        exit 1 
-    fi
-    if [[ ! -d  {{ bak_dir }} ]]; then
-        mkdir {{ bak_dir }}
-    fi
-    echo "Copy {{ local_env }} => {{ bak_dir }}"
+    set -euxo pipefail
+    test -f {{ local_env }} || exit $?
+    mkdir -p {{ bak_dir }} || exit $?
     cp {{ local_env }} {{ bak_dir }}
 
 [private]
 env-restore bak_dir:
     #!/usr/bin/env bash
-    set -euo pipefail
-    if [[ ! -f  {{ bak_dir }}/.env ]]; then
-        echo "Can't restore: {{ bak_dir }}/.env doesn't exists"
-        exit 1 
-    fi
-    echo "Copy {{ bak_dir }}/.env => {{ local_env }}"
+    set -euxo pipefail
+    test -f  {{ bak_dir }}/.env || exit $?
     cp {{ bak_dir }}/.env {{ local_env }}
