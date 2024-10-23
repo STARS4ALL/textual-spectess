@@ -13,8 +13,6 @@ import uuid
 import asyncio
 import logging
 
-from typing import Optional, List
-from datetime import datetime
 
 # ---------------------
 # Third party libraries
@@ -32,7 +30,7 @@ from lica.sqlalchemy.asyncio.dbase import url, engine, Model, AsyncSession
 # -------------
 
 from .. import __version__
-from .model import Photometer, Sample, Config
+from .model import Config
 
 # ----------------
 # Module constants

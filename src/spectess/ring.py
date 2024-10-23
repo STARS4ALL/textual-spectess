@@ -8,7 +8,6 @@
 # System wide imports
 # -------------------
 
-import os
 import math
 import logging
 import statistics

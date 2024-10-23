@@ -20,7 +20,6 @@ from pathlib import PurePath
 # -------------------
 
 from sqlalchemy import select, text
-from sqlalchemy.exc import IntegrityError
 
 from lica.misc import measurements_session_id
 from lica.asyncio.photometer import Role, Model
@@ -31,7 +30,7 @@ from lica.asyncio.photometer.builder import PhotometerBuilder
 # -------------
 
 from ..ring import RingBuffer
-from ..dbase.model import Config, Sample, Photometer as DbPhotometer
+from ..dbase.model import Sample, Photometer as DbPhotometer
 
 # ----------------
 # Module constants

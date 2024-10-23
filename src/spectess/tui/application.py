@@ -8,14 +8,12 @@
 # System wide imports
 # -------------------
 
-import sys
-
-
 import os
 import logging
 
 from pathlib import Path
 from typing import Iterable
+from importlib.resources import files
 
 # ---------------
 # Textual imports
@@ -23,17 +21,17 @@ from typing import Iterable
 
 from rich.text import Text
 
-from textual import on, work
+from textual import on
 from textual.worker import Worker, WorkerState
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Static, Switch, ProgressBar, Rule, Checkbox
-from textual.widgets import TabbedContent, TabPane, Tabs, Input, RadioSet, RadioButton, Placeholder, Digits, DirectoryTree, OptionList
+from textual.widgets import Header, Footer, Log, DataTable, Label, Button, Switch, ProgressBar, Rule, Checkbox
+from textual.widgets import TabbedContent, TabPane, Tabs, Input, RadioSet, RadioButton, DirectoryTree, OptionList
 
 from textual.containers import Horizontal, Vertical
 
 
 from lica.textual.widgets.about import About
-from lica.asyncio.photometer import Role, Model
+from lica.asyncio.photometer import Role
 
 # --------------
 # local imports
@@ -46,7 +44,6 @@ from .widgets.wavelength import Wavelength
 # Module constants
 # ----------------
 
-
 CSS_PKG = 'spectess.tui.resources.css'
 CSS_FILE = 'mytextualapp.tcss'
 # Outside the Python packages
@@ -55,22 +52,15 @@ CSS_PATH = os.path.join(os.getcwd(), CSS_FILE)
 ABOUT_PKG = 'spectess.tui.resources.about'
 ABOUT_RES = 'description.md'
 
+DEFAULT_CSS = files(CSS_PKG).joinpath(CSS_FILE).read_text()
+ABOUT = files(ABOUT_PKG).joinpath(ABOUT_RES).read_text()
+
 # -----------------------
 # Module global variables
 # -----------------------
 
 # get the root logger
 log = logging.getLogger(__name__)
-
-# Instead of a long, embeddded string, we read it as a Python resource
-if sys.version_info[1] < 11:
-    from pkg_resources import resource_string as resource_bytes
-    DEFAULT_CSS = resource_bytes(CSS_PKG, CSS_FILE).decode('utf-8')
-    ABOUT = resource_bytes(ABOUT_PKG, ABOUT_RES).decode('utf-8')
-else:
-    from importlib.resources import files
-    DEFAULT_CSS = files(CSS_PKG).joinpath(CSS_FILE).read_text()
-    ABOUT = files(ABOUT_PKG).joinpath(ABOUT_RES).read_text()
 
 # -------------------
 # Auxiliary functions
@@ -312,7 +302,7 @@ class MyTextualApp(App[str]):
     def tst_switch_pressed(self, event):
         if event.control.value:
             self.query_one("#phot_info_table").loading = True
-            w = self.run_worker(self.controller.get_info(),
+            self.run_worker(self.controller.get_info(),
                                 exclusive=True)
         else:
             self.clear_phot_info_table()

@@ -10,14 +10,14 @@
 
 import logging
 
-from typing import Optional, List
+from typing import List
 from datetime import datetime
 
 # ---------------------
 # Third party libraries
 # ---------------------
 
-from sqlalchemy import String, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import String, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from lica.sqlalchemy.asyncio.dbase import Model

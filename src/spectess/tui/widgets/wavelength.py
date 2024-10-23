@@ -8,17 +8,16 @@
 # Python standrad libraries
 # -------------------------
 from enum import Enum, IntEnum
-from typing import Optional
 
 # ---------------
 # Textual imports
 # ---------------
 
 from textual.reactive import reactive
-from textual.app import RenderResult, ComposeResult
+from textual.app import ComposeResult
 from textual.geometry import clamp
 from textual.widget import Widget
-from textual.widgets import Label, Digits, Rule
+from textual.widgets import Label, Digits
 from textual.containers import Horizontal
 
 

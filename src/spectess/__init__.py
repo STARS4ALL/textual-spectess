@@ -4,7 +4,7 @@
 # See the LICENSE file for details
 # ----------------------------------------------------------------------
 
-from ._version import __version__
+from ._version import __version__ as __version__
 
 # ----------------
 # Module constants
