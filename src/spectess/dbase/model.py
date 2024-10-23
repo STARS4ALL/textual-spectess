@@ -8,6 +8,9 @@
 # System wide imports
 # -------------------
 
+# Allows typing forward references
+from __future__ import annotations
+
 import logging
 
 from typing import List
@@ -63,7 +66,7 @@ class Photometer(Model):
     freq_offset:    Mapped[float]
 
     # This is not a real column, it s meant for the ORM
-    samples: Mapped[List['Sample']] = relationship(back_populates="photometer")
+    samples: Mapped[List[Sample]] = relationship(back_populates="photometer")
 
     def __repr__(self) -> str:
         return f"TESS(id={self.id!r}, name={self.name!r}, mac={self.mac!r})"
