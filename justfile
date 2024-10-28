@@ -8,8 +8,6 @@ drive_uuid := "77688511-78c5-4de3-9108-b631ff823ef4"
 user :=  file_stem(home_dir())
 def_drive := join("/media", user, drive_uuid, "env")
 project := file_stem(justfile_dir())
-local_env := join(justfile_dir(), ".env")
-
 pkg := "textual-spectess"
 module := "spectess"
 
@@ -90,13 +88,12 @@ check_mnt mnt:
 env-backup bak_dir:
     #!/usr/bin/env bash
     set -euxo pipefail
-    test -f {{ local_env }} || exit $?
-    mkdir -p {{ bak_dir }} || exit $?
-    cp {{ local_env }} {{ bak_dir }}
+    cp {{ join(justfile_dir(), ".env") }} {{ bak_dir }}  || exit $?
+    cp {{ join(justfile_dir(), "mytextualapp.tcss") }} {{ bak_dir }} || exit $?
 
 [private]
 env-restore bak_dir:
     #!/usr/bin/env bash
     set -euxo pipefail
-    test -f  {{ bak_dir }}/.env || exit $?
-    cp {{ bak_dir }}/.env {{ local_env }}
+    cp {{ join(bak_dir, ".env" ) }} {{ join(justfile_dir(), ".env") }} || exit $?
+    cp {{ join(bak_dir, "mytextualapp.tcss") }} {{ join(justfile_dir(), "mytextualapp.tcss") }} || exit $?

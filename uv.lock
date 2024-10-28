@@ -753,6 +753,43 @@ wheels = [
 ]
 
 [[package]]
+name = "spectess"
+version = "0.1.dev134+g9daa89d"
+source = { editable = "." }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "aioserial" },
+    { name = "aiosqlite" },
+    { name = "alembic" },
+    { name = "lica", extra = ["aiosqlalchemy"] },
+    { name = "python-decouple" },
+    { name = "sqlalchemy", extra = ["asyncio"] },
+    { name = "textual-dev" },
+    { name = "typing-extensions" },
+]
+
+[package.dependency-groups]
+dev = [
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiohttp" },
+    { name = "aioserial" },
+    { name = "aiosqlite" },
+    { name = "alembic" },
+    { name = "lica", extras = ["aiosqlalchemy"], specifier = ">=1.0.1" },
+    { name = "python-decouple" },
+    { name = "sqlalchemy", extras = ["asyncio"] },
+    { name = "textual-dev" },
+    { name = "typing-extensions" },
+]
+
+[package.metadata.dependency-groups]
+dev = [{ name = "pytest", specifier = ">=8.3.3" }]
+
+[[package]]
 name = "sqlalchemy"
 version = "2.0.35"
 source = { registry = "https://pypi.org/simple" }
@@ -841,43 +878,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/18/6c/57248070f525ea8a9
 wheels = [
     { url = "https://files.pythonhosted.org/packages/07/a9/01d35770fde8d889e1fe28b726188cf28801e57afd369c614cd2bc100ee4/textual_serve-1.1.1-py3-none-any.whl", hash = "sha256:568782f1c0e60e3f7039d9121e1cb5c2f4ca1aaf6d6bd7aeb833d5763a534cb2", size = 445034 },
 ]
-
-[[package]]
-name = "textual-spectess"
-version = "0.1.dev124+g9dd43e3.d20241023"
-source = { editable = "." }
-dependencies = [
-    { name = "aiohttp" },
-    { name = "aioserial" },
-    { name = "aiosqlite" },
-    { name = "alembic" },
-    { name = "lica", extra = ["aiosqlalchemy"] },
-    { name = "python-decouple" },
-    { name = "sqlalchemy", extra = ["asyncio"] },
-    { name = "textual-dev" },
-    { name = "typing-extensions" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiohttp" },
-    { name = "aioserial" },
-    { name = "aiosqlite" },
-    { name = "alembic" },
-    { name = "lica", extras = ["aiosqlalchemy"], specifier = ">=1.0.1" },
-    { name = "python-decouple" },
-    { name = "sqlalchemy", extras = ["asyncio"] },
-    { name = "textual-dev" },
-    { name = "typing-extensions" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8.3.3" }]
 
 [[package]]
 name = "tomli"
