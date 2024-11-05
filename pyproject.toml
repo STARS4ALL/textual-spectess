@@ -1,5 +1,5 @@
 [project]
-name = "textual-spectess"
+name = "spectess"
 dynamic = ["version"]
 description = "Tool to acquire TESS-W sensor readings for spectral response calibration, written in Textual"
 readme = "README.md"

@@ -234,6 +234,7 @@ class Controller:
         filt = self.view.get_filter()
         log = logging.getLogger(role)
         self.view.reset_progress()
+        log.info("Start receiving task on filter %s", filt)
         while len(self.ring) < self._nsamples:
             msg = await self.photometer.queue.get()
             self.ring.append(msg)
